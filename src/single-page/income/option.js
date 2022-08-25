@@ -1,4 +1,7 @@
-export const getOption = (result1, result2, title) => {
+export const getOption = (result1, result2) => {
+    // let dataAll = [...result1.map(item => item.num ? item.num : 0), ...result2.map(item => item.num ? item.num : 0)]
+    // dataAll.sort((a, b) => b - a)
+
     return {
         legend: {
             show: true,
@@ -6,7 +9,7 @@ export const getOption = (result1, result2, title) => {
         },
         grid: {
             top: '8%',
-            bottom: 0,
+            bottom: '3%',
             left: 0,
             right: 0,
             containLabel: true,
@@ -23,6 +26,7 @@ export const getOption = (result1, result2, title) => {
             },
         },
         yAxis: {
+            // max: parseInt(dataAll[0] * 1.2),
             axisLine: {
                 show: true,
             },
@@ -34,7 +38,7 @@ export const getOption = (result1, result2, title) => {
             },
         },
         series: [
-            { // j
+            {
                 name: '小金',
                 type: 'line',
                 data: result1.map(item => item.num),
@@ -45,7 +49,7 @@ export const getOption = (result1, result2, title) => {
                     color: '#427bde',
                 },
             },
-            { // y
+            {
                 name: '小银',
                 type: 'line',
                 data: result2.map(item => item.num),

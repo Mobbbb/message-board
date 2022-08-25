@@ -1,11 +1,8 @@
-import { fetchJsonData } from '@/api/index'
 import { ElMessage } from 'element-plus'
 import { parseCharacterData, parseWeaponData, parseTeammateData, parseCoordinateData } from '@/libs/data-processing'
 import { openDB } from 'idb'
 import { fetchInsertLog } from '@/api'
 import { getCurrentTime, getQueryVariable } from '@/libs/util'
-// eslint-disable-next-line
-import mock from '@/config/mock'
 
 const version = require('package').version
 

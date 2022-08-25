@@ -1,6 +1,4 @@
 import store from '@/store'
-import PROPERTY_NAME_MAP from '@/config/obj-map'
-import { SCORE_MAP, SECONDARY_ATTR_ARR, REGION, MAIN_ATTR_MAP } from '@/config/constant'
 
 const HAD = ['HP', 'ATK', 'DEF']
 
