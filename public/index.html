@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+        
+		<meta name="apple-mobile-web-app-title" content="<%= htmlWebpackPlugin.options.shortName %>">
+		<meta name="theme-color" content="#f5f5f5">
+		
+		<link rel="icon" href="<%= BASE_URL %>ico.svg">
+		<link rel="apple-touch-icon" href="<%= VUE_APP_HOST %>/resource/genshin-equipment/image/yuanshen-white-144x144.png">
+		<title><%= htmlWebpackPlugin.options.title %></title>
+  	</head>
+  	<body>
+		<noscript>
+			<strong>We're sorry but <%= htmlWebpackPlugin.options.title %> doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
+		</noscript>
+		<div id="app"></div>
+    <!-- built files will be auto injected -->
+  	</body>
+</html>
+<% for (var i in htmlWebpackPlugin.options.resourceConfig && htmlWebpackPlugin.options.resourceConfig.css) { %>
+	<link href="<%= htmlWebpackPlugin.options.resourceConfig.css[i] %>" rel="stylesheet">
+<% } %>
+<% for (var i in htmlWebpackPlugin.options.resourceConfig && htmlWebpackPlugin.options.resourceConfig.js) { %>	
+	<script src="<%= htmlWebpackPlugin.options.resourceConfig.js[i] %>"></script>
+<% } %>
+<script src="//code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/echarts@5.3.3/dist/echarts.min.js"></script>

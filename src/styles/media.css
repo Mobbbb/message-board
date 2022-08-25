@@ -1,0 +1,54 @@
+@media screen and (max-width: 544px) {
+    /* 主体容器 */
+    /* App.vue */
+    .main-wrap {
+        width: calc(100% - 24px)!important;
+        height: calc(100% - 20px)!important;
+		margin-right: 12px!important;
+		margin-left: 12px!important;
+        margin-top: 12px!important;
+    }
+    .mobile-wrap {
+        padding-left: 12px!important;
+        padding-right: 12px!important;
+    }
+
+    /* 导航栏 */
+    /* nav-menu.vue */
+    .page-nav-wrap {
+        width: 100%!important;
+    }
+    .search-input-wrap {
+        right: 16px!important;
+    }
+
+    /* 使用指导按钮 */
+    /* tips.vue */
+    .main-tips {
+        right: 8px!important;
+        bottom: 8px!important;
+        top: unset!important;
+    }
+    .main-refresh {
+        right: 8px!important;
+        bottom: 8px!important;
+        top: unset!important;
+    }
+    .calc-result-btn {
+        right: 8px!important;
+        top: 8px!important;
+    }
+
+    /* 首页的内容标题 */
+    /* home-header.vue */
+    .home-header a {
+        margin-right: 14px!important;
+    }
+    .home-header-title{
+        display: none!important;
+    }
+
+    .page-nav-wrap .el-menu-item {
+        padding: 0 12px;
+    }
+}
