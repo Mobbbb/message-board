@@ -1,9 +1,8 @@
 <template>
     <div class="list-wrap">
-        <div class="article-item-wrap mobile-wrap" v-for="(item, index) in listData" :key="item.id" 
-            @click="clickHandle(item, index)">
+        <div class="article-item-wrap mobile-wrap" v-for="item in listData" :key="item.id" @click="clickHandle(item)">
             <div class="article-title">
-                <span class="html-content" v-html="item.htmlContent" :ref="setItemRef"></span>
+                <span class="html-content" v-html="item.htmlContent" :ref="el => setItemRef(el, item.index)"></span>
                 <div class="time-text">{{item.pubtime}}</div>
                 <!-- <div class="number-text">{{index + 1}}</div> -->
             </div>
@@ -27,7 +26,7 @@
 
 <script>
 import { useRouter } from 'vue-router'
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, reactive } from 'vue'
 import { useStore } from 'vuex'
 import { ElMessage } from 'element-plus'
 
@@ -38,7 +37,7 @@ export default {
         const store = new useStore()
         const password = ref('')
         const clickItem = ref({})
-        const htmlContent = ref([])
+        const htmlContent = {}
         const centerDialogVisible = ref(false)
         const listData = computed(() => store.state.app.listData.filter(item => !item.hideDefault))
         const fetchInsertLogHandle = (value) => store.dispatch('app/fetchInsertLogHandle', value)
@@ -52,7 +51,7 @@ export default {
                 clickItem.value = params
                 centerDialogVisible.value = true
             } else {
-                navigator.clipboard.writeText(htmlContent.value[params.index].innerText)
+                navigator.clipboard.writeText(htmlContent[params.index].innerText)
                 ElMessage({
                     message: '复制成功！',
                     customClass: 'el-message-wrap',
@@ -74,9 +73,9 @@ export default {
             }
         }
 
-        const setItemRef = (el) => {
+        const setItemRef = (el, index) => {
             if (el) {
-                htmlContent.value.push(el)
+                htmlContent[index] = el
             }
         }
 

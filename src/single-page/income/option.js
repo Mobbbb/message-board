@@ -1,4 +1,4 @@
-export const getOption = (result1, result2) => {
+export const getOption = (result1 = [], result2 = []) => {
     // let dataAll = [...result1.map(item => item.num ? item.num : 0), ...result2.map(item => item.num ? item.num : 0)]
     // dataAll.sort((a, b) => b - a)
 

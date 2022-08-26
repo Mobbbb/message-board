@@ -28,3 +28,26 @@ export const fetchIncomeData = () => {
         method: 'get',
     })
 }
+
+export const fetchIncomeInfo = () => {
+    return axios.request({
+        url: prefixApi + '/other/incomeInfo',
+        method: 'get',
+    })
+}
+
+export const fetchInsertIncome = (params) => {
+    return axios.request({
+        url: prefixApi + '/other/insertIncome',
+        method: 'post',
+        data: params,
+    })
+}
+
+export const fetchDeleteIncome = (id) => {
+    return axios.request({
+        url: prefixApi + '/other/deleteIncome',
+        method: 'get',
+        params: { id },
+    })
+}

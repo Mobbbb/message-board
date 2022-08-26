@@ -82,6 +82,12 @@ export default {
                     const splitStr = item.htmlContent.split('<img src="')
                     item.htmlContent = splitStr.join('<img src="//qzonestyle.gtimg.cn')
                 }
+                if (item.htmlContent.indexOf('&nbsp;<br  />') > -1) {
+                    item.htmlContent = item.htmlContent.replace('&nbsp;<br  />', '<br  />')
+                }
+                if (item.htmlContent.indexOf('<br  />&nbsp;') > -1) {
+                    item.htmlContent = item.htmlContent.replace('<br  />&nbsp;', '<br  />')
+                }
             })
             isLoading.value = false
             showRedPoint.value = false
