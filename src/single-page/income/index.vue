@@ -35,7 +35,7 @@
                     </el-table>
                     <div class="table-input-wrap">
                         <div>
-                            <el-date-picker v-model="date" type="date" placeholder="日期" style="width: 110px;" />
+                            <el-date-picker v-model="date" type="date" placeholder="日期" :clearable="false" style="width: 90px;" />
                         </div>
                         <div>
                             <el-input-number v-model="num" :controls="false" style="width: 60px;" />
@@ -57,7 +57,7 @@
 <script>
 import { ref, nextTick, onMounted } from 'vue'
 import { getOption } from './option'
-import { fetchIncomeData, fetchIncomeInfo, fetchInsertIncome, fetchDeleteIncome } from '@/api'
+import { fetchIncomeInfo, fetchInsertIncome, fetchDeleteIncome } from '@/api'
 import { getDateBetween, dateFormat } from '@/libs/util'
 
 export default {
@@ -72,23 +72,62 @@ export default {
         let result1 = []
         let result2 = []
 
+        let myChart1 = null
+        let myChart2 = null
+
         onMounted(async () => {
             await getTableData()
             getDayIncome()
         })
 
-        const getDayIncome = async () => {
-            let myChart1 = echarts.init(document.getElementById('incomeChart1'))
-
+        const getDayIncome = () => {
             setRes()
 
-            result1 = formatData(result1)
-            result2 = formatData(result2)
+            if (!myChart1) {
+                myChart1 = echarts.init(document.getElementById('incomeChart1'))
+                myChart1.setOption(getOption(result1, result2))
+            } else {
+                myChart1.setOption(getOption(result1, result2), true)
+            }
+        }
 
-            myChart1.setOption(getOption(result1, result2))
+        const getTotalIncome = () => {
+            setRes()
+
+            let data1 = []
+            let data2 = []
+            result1.forEach((item, index) => {
+                if (index) {
+                    data1.push({
+                        num: item.num + data1[index - 1].num,
+                        date: item.date,
+                    })
+                } else {
+                    data1.push(item)
+                }
+            })
+            result2.forEach((item, index) => {
+                if (index) {
+                    data2.push({
+                        num: item.num + data2[index - 1].num,
+                        date: item.date,
+                    })
+                } else {
+                    data2.push(item)
+                }
+            })
+
+            if (!myChart2) {
+                myChart2 = echarts.init(document.getElementById('incomeChart2'))
+                myChart2.setOption(getOption(formatData(data1), formatData(data2)))
+            } else {
+                myChart2.setOption(getOption(formatData(data1), formatData(data2)), true)
+            }
         }
 
         const setRes = () => {
+            result1 = []
+            result2 = []
             tableData.value.forEach(item => {
                 if (!Array.isArray(item.name)) {
                     item.name = item.name.split(',')
@@ -105,39 +144,17 @@ export default {
             result2 = formatData(result2)
         }
 
-        const handleClick = async () => {
-            if (activeName.value === 'add') {
+        const handleClick = async (params) => {
+            if (params.props.name === 'add') {
                 nextTick(() => {
-                    setRes()
-                    let myChart2 = echarts.init(document.getElementById('incomeChart2'))
-                    let data1 = []
-                    let data2 = []
-                    result1.forEach((item, index) => {
-                        if (index) {
-                            data1.push({
-                                num: item.num + data1[index - 1].num,
-                                date: item.date,
-                            })
-                        } else {
-                            data1.push(item)
-                        }
-                    })
-                    result2.forEach((item, index) => {
-                        if (index) {
-                            data2.push({
-                                num: item.num + data2[index - 1].num,
-                                date: item.date,
-                            })
-                        } else {
-                            data2.push(item)
-                        }
-                    })
-                    myChart2.setOption(getOption(formatData(data1), formatData(data2)))
+                    getTotalIncome()
                 })
-            } else if (activeName.value === 'table') {
+            } else if (params.props.name === 'table') {
                 getTableData()
             } else {
-                getDayIncome()
+                nextTick(() => {
+                    getDayIncome()
+                })
             }
         }
 
@@ -239,24 +256,28 @@ export default {
     height: 100%;
 }
 .chart-tab .el-tabs__content {
-    height: calc(100% - 55px);
+    height: calc(100% - 55px)!important;
 }
 .chart-tab .el-tab-pane {
-    height: 100%;
+    height: 100%!important;
 }
 .el-input--suffix .el-input__inner {
-    padding-right: 4px;
+    padding-right: 6px!important;
+    padding-left: 6px!important;
 }
 .el-tag--default .el-tag__close {
-    margin-left: 0;
+    margin-left: 0!important;
 }
 .el-tag--default {
-    padding: 4px;
+    padding: 4px!important;
 }
 .el-table__body-wrapper {
-    padding-top: 50px;
+    padding-top: 50px!important;
 }
 .el-table .cell {
-    padding: 0 6px;
+    padding: 0 6px!important;
+}
+.el-input__prefix {
+    display: none!important;
 }
 </style>
