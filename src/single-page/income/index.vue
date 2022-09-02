@@ -1,6 +1,6 @@
 <template>
     <div class="income-wrap">
-        <el-button type="primary" @click="submitHandle" style="position: absolute;top: 3px;right: 11px;z-index: 10;">录入</el-button>
+        <el-button type="primary" size="small" @click="submitHandle" style="position: absolute;top: 110px;right: 23px;z-index: 100;" v-if="activeName === 'table'">录入</el-button>
         <el-tabs v-model="activeName" @tab-click="handleClick" class="chart-tab">
             <el-tab-pane label="日收益" name="day">
                 <div id="incomeChart1"></div>
@@ -13,7 +13,7 @@
                     <el-table class="incomeTalbe" :data="tableData">
                         <el-table-column prop="date" label="日期" show-overflow-tooltip />
                         <el-table-column prop="num" label="收益" />
-                        <el-table-column prop="name" label="角色">
+                        <el-table-column prop="name" label="角色" show-overflow-tooltip>
                             <template #default="scope">
                                 <div>
                                     <span v-if="scope.row.name.includes('j')">小金</span>
@@ -22,7 +22,7 @@
                                 </div>
                             </template>
                         </el-table-column>
-                        <el-table-column fixed="right" label="操作" width="74">
+                        <el-table-column fixed="right" label="操作" width="70" align="center">
                             <template #default="scope">
                                 <el-button link
                                     type="danger"
@@ -35,7 +35,7 @@
                     </el-table>
                     <div class="table-input-wrap">
                         <div>
-                            <el-date-picker v-model="date" type="date" placeholder="日期" :clearable="false" style="width: 90px;" />
+                            <el-date-picker v-model="date" type="date" placeholder="日期" :editable="false" :clearable="false" style="width: 90px;" />
                         </div>
                         <div>
                             <el-input-number v-model="num" :controls="false" style="width: 60px;" />
@@ -55,10 +55,11 @@
 </template>
 
 <script>
-import { ref, nextTick, onMounted } from 'vue'
+import { ref, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { getOption } from './option'
 import { fetchIncomeInfo, fetchInsertIncome, fetchDeleteIncome } from '@/api'
 import { getDateBetween, dateFormat } from '@/libs/util'
+import { ElMessage } from 'element-plus'
 
 export default {
     name: 'income',
@@ -78,6 +79,19 @@ export default {
         onMounted(async () => {
             await getTableData()
             getDayIncome()
+        })
+
+        onBeforeUnmount(() => {
+            if (myChart1) {
+                myChart1.clear()
+                myChart1.dispose()
+                myChart1 = null
+            }
+            if (myChart2) {
+                myChart2.clear()
+                myChart2.dispose()
+                myChart2 = null
+            }
         })
 
         const getDayIncome = () => {
@@ -152,9 +166,7 @@ export default {
             } else if (params.props.name === 'table') {
                 getTableData()
             } else {
-                nextTick(() => {
-                    getDayIncome()
-                })
+                getDayIncome()
             }
         }
 
@@ -196,9 +208,13 @@ export default {
         }
 
         const submitHandle = async () => {
+            if (!name.value.length) {
+                ElMessage.error('请选择角色')
+                return
+            }
             const params = {
                 date: dateFormat(new Date(date.value), 'yyyy-MM-dd'),
-                num: num.value,
+                num: num.value || 0,
                 name: name.value.join(',')
             }
             await fetchInsertIncome(params)
@@ -237,6 +253,9 @@ export default {
     height: 100%;
 }
 .table-wrap {
+    height: 100%;
+    box-sizing: border-box;
+    padding-bottom: 12px;
     position: relative;
 }
 .table-input-wrap {
@@ -279,5 +298,15 @@ export default {
 }
 .el-input__prefix {
     display: none!important;
+}
+.incomeTalbe .el-table__inner-wrapper {
+    height: 100%!important;
+}
+.incomeTalbe .el-table__body-wrapper {
+    height: calc(100% - 40px)!important;
+    box-sizing: border-box;
+}
+.el-table--border .el-table__inner-wrapper::after, .el-table--border::after, .el-table--border::before, .el-table__inner-wrapper::before {
+    display: none;
 }
 </style>

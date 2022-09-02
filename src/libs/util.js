@@ -168,3 +168,9 @@ export const dateFormat = (date, fmt) => {
     }
     return fmt
 }
+
+export const genVH = (length) => {
+    let clientHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight
+    if (!clientHeight) return length
+    return length * clientHeight / 800
+}
