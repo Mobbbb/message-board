@@ -1,0 +1,19 @@
+{
+	"id": "Zoom",
+	"name": "Zoom",
+	"short_name": "Zoom",
+	"start_url": "/message-board/",
+	"theme_color": "#f5f5f5",
+	"background_color": "#fff",
+	"description": "",
+	"display": "standalone",
+	"lang": "cn",
+	"orientation": "portrait",
+	"icons": [
+		{
+			"src": "https://mobbbb.top/resource/message-board/images/zoom-175x175.png",
+			"sizes": "144x144",
+			"type": "image/png"
+		}
+	]
+}

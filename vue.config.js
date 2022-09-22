@@ -1,7 +1,7 @@
 'use strict'
 
 const name = 'Message - Board'
-const shortName = 'GEC'
+const shortName = 'Message - Board'
 const outputDir = 'dist'
 const assetsDir = 'static'
 const proxyConfig = {
@@ -19,6 +19,7 @@ const proxyConfig = {
 
 const path = require('path')
 const resourceConfig = require('./src/config/resource.js')
+const CopyWebpackPlugin = require('copy-webpack-plugin')
 
 function resolve(dir) {
     return path.join(__dirname, dir)
@@ -53,6 +54,27 @@ module.exports = {
                 'element-plus': 'ElementPlus',
             }
         }
+
+        config.plugins.push(
+            new CopyWebpackPlugin({
+                patterns: [
+                    {
+                        from: path.resolve(__dirname, './sw.js'),
+                        to: path.resolve(__dirname, './dist'),
+                        globOptions: {
+                            ignore: ['.*'],
+                        },
+                    },
+                    {
+                        from: path.resolve(__dirname, './manifest.json'),
+                        to: path.resolve(__dirname, './dist'),
+                        globOptions: {
+                            ignore: ['.*'],
+                        },
+                    },
+                ],
+            }),
+        )
 
         return {
             resolve: {

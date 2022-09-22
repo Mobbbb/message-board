@@ -230,18 +230,6 @@ const app = {
             dispatch('INIT')
             commit('equipment/setEquipmentList', [], { root: true })
         },
-        registerServiceWorker({ commit }) {
-            window.addEventListener('load', function() {
-                if ('serviceWorker' in navigator) {
-                    navigator.serviceWorker.register('/sw.js')
-                }
-                window.addEventListener('beforeinstallprompt', (event) => { // 若当前未安装
-                    event.preventDefault()
-                    commit('setAppPromptEvent', event)
-                    commit('setInstallBtnShowStatus', true)
-                })
-            })
-        },
     },
 }
 

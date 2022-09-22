@@ -39,6 +39,12 @@ export default {
         const setListData = (value) => store.commit('app/setListData', value)
         
         onMounted(async () => {
+            window.addEventListener('load', function() {
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.register('/sw.js')
+                }
+            })
+            
             let clearStatus = localStorage.getItem(`clear-status`)
             if (!clearStatus) {
                 localStorage.clear()
