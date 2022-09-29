@@ -18,7 +18,7 @@
                     @keydown.enter="searchHandle" 
                     @clear="searchHandle"
                     clearable
-                    placeholder="Please input message"
+                    placeholder="请输入..."
                     class="search-input" />
                 <el-button size="small" type="primary" style="height: 28px;border-radius: 0 3px 3px 0;" @click="searchHandle">搜索</el-button>
             </div>
@@ -109,11 +109,11 @@ export default {
 .search-input-wrap {
     position: absolute;
     display: flex;
-    width: 240px;
+    width: 185px;
     height: 32px;
     line-height: 28px;
     right: 16px;
-    top: 16px;
+    top: 14px;
 }
 </style>
 

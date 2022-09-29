@@ -22,23 +22,6 @@
         right: 16px!important;
     }
 
-    /* 使用指导按钮 */
-    /* tips.vue */
-    .main-tips {
-        right: 8px!important;
-        bottom: 8px!important;
-        top: unset!important;
-    }
-    .main-refresh {
-        right: 8px!important;
-        bottom: 8px!important;
-        top: unset!important;
-    }
-    .calc-result-btn {
-        right: 8px!important;
-        top: 8px!important;
-    }
-
     /* 首页的内容标题 */
     /* home-header.vue */
     .home-header a {

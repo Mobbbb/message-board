@@ -3,6 +3,7 @@ import { parseCharacterData, parseWeaponData, parseTeammateData, parseCoordinate
 import { openDB } from 'idb'
 import { fetchInsertLog } from '@/api'
 import { getCurrentTime, getQueryVariable } from '@/libs/util'
+import router from '@/router'
 
 const version = require('package').version
 
@@ -140,7 +141,7 @@ const app = {
                 await fetchInsertLog({
                     userAgent: navigator.userAgent,
                     createTime: getCurrentTime(),
-                    routerName,
+                    routerName: routerName || router.currentRoute.value.path,
                 })
             }
         },

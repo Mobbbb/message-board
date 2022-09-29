@@ -1,32 +1,39 @@
 <template>
-    <div class="list-wrap">
-        <div class="article-item-wrap mobile-wrap" v-for="item in listData" :key="item.id" @click="clickHandle(item)">
-            <div class="article-title">
-                <span class="html-content" v-html="item.htmlContent" :ref="el => setItemRef(el, item.index)"></span>
-                <div class="time-text">{{item.pubtime}}</div>
-                <!-- <div class="number-text">{{index + 1}}</div> -->
+    <div class="home-wrap">     
+        <div class="list-wrap">
+            <div class="article-item-wrap mobile-wrap" v-for="item in showListData" :key="item.id" @click="clickHandle(item)">
+                <div class="article-title">
+                    <span class="html-content" v-html="item.htmlContent" :ref="el => setItemRef(el, item.index)"></span>
+                    <div class="time-text">{{item.pubtime}}</div>
+                    <!-- <div class="number-text">{{index + 1}}</div> -->
+                </div>
+                <el-avatar v-if="item.uin === 491450147" class="list-uid" 
+                    src="/resource/home-assets/images/manifest-36x36.png"/>
+                <el-avatar v-else class="list-uid"
+                    src="/resource/home-assets/images/jhh-avator.jpg"/>
             </div>
-            <el-avatar v-if="item.uin === 491450147" class="list-uid" 
-                src="/resource/home-assets/images/manifest-36x36.png"/>
-            <el-avatar v-else class="list-uid"
-                src="/resource/home-assets/images/jhh-avator.jpg"/>
+            <el-dialog v-model="centerDialogVisible" title="Forbidden" width="275px" center>
+                <el-input v-model="password" @keydown.enter="confirm" placeholder="password" />
+                <template #footer>
+                    <span class="dialog-footer">
+                        <el-button @click="centerDialogVisible = false">Cancel</el-button>
+                        <el-button type="primary" @click="confirm">Confirm</el-button>
+                    </span>
+                </template>
+            </el-dialog>
+            <el-empty description="暂无数据" v-if="!showListData.length"></el-empty>
         </div>
-        <el-dialog v-model="centerDialogVisible" title="Forbidden" width="275px" center>
-            <el-input v-model="password" @keydown.enter="confirm" placeholder="password" />
-            <template #footer>
-            <span class="dialog-footer">
-                <el-button @click="centerDialogVisible = false">Cancel</el-button>
-                <el-button type="primary" @click="confirm">Confirm</el-button>
-            </span>
-            </template>
-        </el-dialog>
-        <el-empty description="暂无数据" v-if="!listData.length"></el-empty>
+        <el-pagination small background layout="prev, jumper, next, total" 
+            v-model:currentPage="currentPage"
+            :page-size="pageSize"
+            :total="listData.length"
+            class="home-pagination" />
     </div>
 </template>
 
 <script>
 import { useRouter } from 'vue-router'
-import { computed, onMounted, ref, reactive } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useStore } from 'vuex'
 import { ElMessage } from 'element-plus'
 
@@ -37,13 +44,21 @@ export default {
         const store = new useStore()
         const password = ref('')
         const clickItem = ref({})
+        const currentPage = ref(1)
         const htmlContent = {}
         const centerDialogVisible = ref(false)
         const listData = computed(() => store.state.app.listData.filter(item => !item.hideDefault))
         const fetchInsertLogHandle = (value) => store.dispatch('app/fetchInsertLogHandle', value)
 
+        const pageSize = 20
+
         onMounted(() => {
             fetchInsertLogHandle(router.currentRoute.value.path)
+        })
+
+        const showListData = computed(() => {
+            const startNum = (currentPage.value - 1) * pageSize
+            return listData.value.slice(startNum, startNum + pageSize)
         })
 
         const clickHandle = (params) => {
@@ -80,10 +95,13 @@ export default {
         }
 
         return {
+            currentPage,
+            pageSize,
             htmlContent,
             password,
             centerDialogVisible,
             listData,
+            showListData,
             confirm,
             clickHandle,
             setItemRef,
@@ -93,10 +111,16 @@ export default {
 </script>
 
 <style scoped>
-.list-wrap {
+.home-wrap {
     height: 100%;
+    background: #f5f5f5;
+}
+.list-wrap {
+    height: calc(100% - 48px);
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 12px 0 rgb(0 0 0 / 10%);
 }
 .article-item-wrap {
     padding: 12px 12px 8px 12px;
@@ -164,6 +188,9 @@ export default {
     padding: 0 16px 8px 16px!important;
 }
 .el-message-wrap {
-    min-width: 330px;
+    min-width: 300px;
+}
+.home-pagination .el-pagination__jump {
+    margin-left: 0;
 }
 </style>

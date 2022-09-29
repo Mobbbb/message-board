@@ -1,6 +1,6 @@
 <template>
     <div class="income-wrap">
-        <el-button type="primary" size="small" @click="submitHandle" style="position: absolute;top: 110px;right: 23px;z-index: 100;" v-if="activeName === 'table'">录入</el-button>
+        <el-button type="primary" size="small" @click="submitHandle" style="position: absolute;top: 110px;right: 6px;z-index: 100;" v-if="activeName === 'table'">录入</el-button>
         <el-tabs v-model="activeName" @tab-click="handleClick" class="chart-tab">
             <el-tab-pane label="日收益" name="day">
                 <div id="incomeChart1"></div>
@@ -12,7 +12,7 @@
                 <div class="table-wrap">
                     <el-table class="incomeTalbe" :data="tableData">
                         <el-table-column prop="date" label="日期" show-overflow-tooltip />
-                        <el-table-column prop="num" label="收益" />
+                        <el-table-column prop="num" label="收益" :width="overMediaCritical ? numWidth : ''" />
                         <el-table-column prop="name" label="角色" show-overflow-tooltip>
                             <template #default="scope">
                                 <div>
@@ -22,7 +22,7 @@
                                 </div>
                             </template>
                         </el-table-column>
-                        <el-table-column fixed="right" label="操作" width="70" align="center">
+                        <el-table-column fixed="right" label="操作" width="60" align="center">
                             <template #default="scope">
                                 <el-button link
                                     type="danger"
@@ -34,19 +34,19 @@
                         </el-table-column>
                     </el-table>
                     <div class="table-input-wrap">
-                        <div>
+                        <div style="width: 100%;">
                             <el-date-picker v-model="date" type="date" placeholder="日期" :editable="false" :clearable="false" style="width: 90px;" />
                         </div>
-                        <div>
-                            <el-input-number v-model="num" :controls="false" style="width: 60px;" />
+                        <div style="padding: 0 6px;box-sizing: border-box;" :style="overMediaCritical ? { width: `${numWidth}px`, flexShrink: 0 } : { width: '100%' }">
+                            <el-input-number v-model="num" class="table-input-number" :controls="false" style="width: 50px;" />
                         </div>
-                        <div>
+                        <div style="width: 100%;">
                             <el-select v-model="name" multiple placeholder="角色" style="width: 130px;">
                                 <el-option label="金" value="j"></el-option>
                                 <el-option label="银" value="y"></el-option>
                             </el-select>
                         </div>
-                        <div style="width: 74px;flex-shrink: 0;"></div>
+                        <div style="width: 60px;flex-shrink: 0;"></div>
                     </div>
                 </div>
             </el-tab-pane>
@@ -55,7 +55,8 @@
 </template>
 
 <script>
-import { ref, nextTick, onMounted, onBeforeUnmount } from 'vue'
+import { ref, nextTick, onMounted, onBeforeUnmount, computed } from 'vue'
+import { useStore } from 'vuex'
 import { getOption } from './option'
 import { fetchIncomeInfo, fetchInsertIncome, fetchDeleteIncome } from '@/api'
 import { getDateBetween, dateFormat } from '@/libs/util'
@@ -64,11 +65,14 @@ import { ElMessage } from 'element-plus'
 export default {
     name: 'income',
     setup() {
+        const store = new useStore()
         const activeName = ref('day')
         const tableData = ref([])
         const date = ref(new Date())
         const num = ref(0)
         const name = ref(['j', 'y'])
+
+        const numWidth = 62
 
         let result1 = []
         let result2 = []
@@ -76,7 +80,11 @@ export default {
         let myChart1 = null
         let myChart2 = null
 
+        const overMediaCritical = computed(() => store.getters['app/overMediaCritical'])
+        const fetchInsertLogHandle = (value) => store.dispatch('app/fetchInsertLogHandle', value)
+
         onMounted(async () => {
+            fetchInsertLogHandle()
             await getTableData()
             getDayIncome()
         })
@@ -227,12 +235,14 @@ export default {
         }
 
         return {
+            numWidth,
+            overMediaCritical,
             tableData,
             activeName,
-            submitHandle,
             date,
             num,
             name,
+            submitHandle,
             deleteRow,
             handleClick,
         }
@@ -246,11 +256,14 @@ export default {
     position: relative;
     height: 100%;
     box-sizing: border-box;
-    padding: 0 12px;
+    padding-left: 12px;
 }
 #incomeChart1, #incomeChart2, .incomeTalbe {
     width: 100%;
     height: 100%;
+}
+.incomeTalbe {
+    font-size: 12px;
 }
 .table-wrap {
     height: 100%;
@@ -263,9 +276,6 @@ export default {
     display: flex;
     top: 52px;
     z-index: 10;
-    width: 100%;
-}
-.table-input-wrap > div {
     width: 100%;
 }
 </style>
@@ -296,6 +306,10 @@ export default {
 .el-table .cell {
     padding: 0 6px!important;
 }
+.el-table-fixed-column--right .cell {
+    padding-left: 0!important;
+    padding-right: 0!important;
+}
 .el-input__prefix {
     display: none!important;
 }
@@ -308,5 +322,9 @@ export default {
 }
 .el-table--border .el-table__inner-wrapper::after, .el-table--border::after, .el-table--border::before, .el-table__inner-wrapper::before {
     display: none;
+}
+.table-input-number .el-input .el-input__inner {
+    padding-left: 4px;
+    padding-right: 4px;
 }
 </style>

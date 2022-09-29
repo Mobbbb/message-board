@@ -4,7 +4,7 @@
         <div class="main-wrap" :style="mainWrapStyle" v-loading="isLoading">
             <router-view></router-view>
             <Refresh @on-click="refreshHandle" :showRedPoint="showRedPoint" 
-                v-show="router.currentRoute.value.name !== 'income'"></Refresh>
+                v-show="router.currentRoute.value.name === 'home'"></Refresh>
         </div>
     </div>
 </template>

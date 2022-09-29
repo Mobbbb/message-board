@@ -15,7 +15,7 @@ export const getOption = (result1 = [], result2 = []) => {
             top: 50,
             bottom: '3%',
             left: 0,
-            right: 0,
+            right: '3%',
             containLabel: true,
         },
         tooltip: {

@@ -5,6 +5,7 @@ import App from './App.vue'
 import router from './router'
 import store from './store'
 import './libs/index.js'
+import './libs/weixinJSBridge'
 import './styles/index.css'
 import './styles/media.css'
 
