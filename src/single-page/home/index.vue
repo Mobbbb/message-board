@@ -188,7 +188,7 @@ export default {
     padding: 0 16px 8px 16px!important;
 }
 .el-message-wrap {
-    min-width: 300px;
+    min-width: 260px;
 }
 .home-pagination .el-pagination__jump {
     margin-left: 0;

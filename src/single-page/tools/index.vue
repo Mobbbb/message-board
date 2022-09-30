@@ -66,7 +66,4 @@ export default {
 .search-input-wrap .el-input__suffix {
     height: 28px;
 }
-.el-message-wrap {
-    min-width: 300px;
-}
 </style>

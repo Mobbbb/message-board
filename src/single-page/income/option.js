@@ -1,15 +1,15 @@
 import { genVH } from '@/libs/util'
 
 export const getOption = (result1 = [], result2 = []) => {
-    // let dataAll = [...result1.map(item => item.num ? item.num : 0), ...result2.map(item => item.num ? item.num : 0)]
-    // dataAll.sort((a, b) => b - a)
+    let dataAll = [...result1.map(item => item.num ? item.num : 0), ...result2.map(item => item.num ? item.num : 0)]
+    dataAll.sort((a, b) => b - a)
 
     const fontSize = genVH(8)
 
     return {
         legend: {
             show: true,
-            top: -4,
+            top: 14,
         },
         grid: {
             top: 50,
@@ -53,7 +53,7 @@ export const getOption = (result1 = [], result2 = []) => {
             },
         },
         yAxis: {
-            // max: parseInt(dataAll[0] * 1.2),
+            max: parseInt(dataAll[0] * 1.3),
             axisLine: {
                 show: false,
             },
@@ -62,6 +62,9 @@ export const getOption = (result1 = [], result2 = []) => {
             },
             splitLine: {
                 show: true,
+                lineStyle: {
+                    color: '#ebeef5',
+                },
             },
             axisLabel: {
                 show: true,

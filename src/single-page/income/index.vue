@@ -1,6 +1,6 @@
 <template>
     <div class="income-wrap">
-        <el-button type="primary" size="small" @click="submitHandle" style="position: absolute;top: 110px;right: 6px;z-index: 100;" v-if="activeName === 'table'">录入</el-button>
+        <el-button type="primary" size="small" @click="submitHandle" style="position: absolute;top: 95px;right: 6px;z-index: 100;" v-if="activeName === 'table'">录入</el-button>
         <el-tabs v-model="activeName" @tab-click="handleClick" class="chart-tab">
             <el-tab-pane label="日收益" name="day">
                 <div id="incomeChart1"></div>
@@ -227,6 +227,7 @@ export default {
             }
             await fetchInsertIncome(params)
             getTableData()
+            num.value = 0
         }
 
         const deleteRow = async (data) => {
@@ -261,6 +262,7 @@ export default {
 #incomeChart1, #incomeChart2, .incomeTalbe {
     width: 100%;
     height: 100%;
+    background: white;
 }
 .incomeTalbe {
     font-size: 12px;
@@ -285,7 +287,11 @@ export default {
     height: 100%;
 }
 .chart-tab .el-tabs__content {
-    height: calc(100% - 55px)!important;
+    height: calc(100% - 42px)!important;
+}
+.chart-tab .el-tabs__header {
+    padding-right: 12px;
+    margin-bottom: 1px;
 }
 .chart-tab .el-tab-pane {
     height: 100%!important;
