@@ -8,9 +8,9 @@
                     <!-- <div class="number-text">{{index + 1}}</div> -->
                 </div>
                 <el-avatar v-if="item.uin === 491450147" class="list-uid" 
-                    src="/resource/home-assets/images/manifest-36x36.png"/>
+                    src="/resource/message-board/images/mby.jpg"/>
                 <el-avatar v-else class="list-uid"
-                    src="/resource/home-assets/images/jhh-avator.jpg"/>
+                    src="/resource/message-board/images/jhh-avator2.jpg"/>
             </div>
             <el-dialog v-model="centerDialogVisible" title="Forbidden" width="275px" center>
                 <el-input v-model="password" @keydown.enter="confirm" placeholder="password" />
