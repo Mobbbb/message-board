@@ -9,10 +9,10 @@ export const getOption = (result1 = [], result2 = []) => {
     return {
         legend: {
             show: true,
-            top: 14,
+            top: 30,
         },
         grid: {
-            top: 50,
+            top: 80,
             bottom: '3%',
             left: 0,
             right: '3%',
@@ -63,7 +63,7 @@ export const getOption = (result1 = [], result2 = []) => {
             splitLine: {
                 show: true,
                 lineStyle: {
-                    color: '#ebeef5',
+                    color: '#f1f3f8',
                 },
             },
             axisLabel: {

@@ -1,6 +1,5 @@
 <template>
     <div class="income-wrap">
-        <el-button type="primary" size="small" @click="submitHandle" style="position: absolute;top: 95px;right: 6px;z-index: 100;" v-if="activeName === 'table'">录入</el-button>
         <el-tabs v-model="activeName" @tab-click="handleClick" class="chart-tab">
             <el-tab-pane label="日收益" name="day">
                 <div id="incomeChart1"></div>
@@ -48,6 +47,9 @@
                         </div>
                         <div style="width: 60px;flex-shrink: 0;"></div>
                     </div>
+                    <div class="custom-opt">
+                        <el-button type="primary" size="small" @click="submitHandle">录入</el-button>
+                    </div>
                 </div>
             </el-tab-pane>
         </el-tabs>
@@ -72,6 +74,8 @@ export default {
         const num = ref(0)
         const name = ref(['j', 'y'])
 
+        const festivalList = ['2022-09-10', '2022-09-11', '2022-09-12', '2022-10-01', '2022-10-02', '2022-10-03', 
+            '2022-10-04', '2022-10-05', '2022-10-06', '2022-10-07']
         const numWidth = 62
 
         let result1 = []
@@ -184,6 +188,8 @@ export default {
             data.sort((a, b) => Date.parse(new Date(b.date)) - Date.parse(new Date(a.date)))
             let dateArr = getDateBetween(data[data.length - 1].date, data[0].date)
 
+            dateArr = dateArr.filter(item => !festivalList.includes(item))
+
             dateArr.forEach(item => {
                 let flag = null
                 data.forEach(cell => {
@@ -194,7 +200,6 @@ export default {
 
                 if (flag) {
                     result.push(flag)
-                    flag = null
                 } else {
                     const dateTime = new Date(item)
                     if (dateTime.getDay() !== 0 && dateTime.getDay() !== 6) {
@@ -276,9 +281,13 @@ export default {
 .table-input-wrap {
     position: absolute;
     display: flex;
-    top: 52px;
+    align-items: center;
+    top: 41px;
     z-index: 10;
+    height: 48px;
     width: 100%;
+    border-bottom: 1px solid #ebeef5;
+    box-sizing: border-box;
 }
 </style>
 
@@ -307,7 +316,7 @@ export default {
     padding: 4px!important;
 }
 .el-table__body-wrapper {
-    padding-top: 50px!important;
+    padding-top: 48px!important;
 }
 .el-table .cell {
     padding: 0 6px!important;
@@ -332,5 +341,31 @@ export default {
 .table-input-number .el-input .el-input__inner {
     padding-left: 4px;
     padding-right: 4px;
+}
+.custom-opt {
+    width: 60px;
+    height: 48px;
+    flex-shrink: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    top: 40px;
+    z-index: 10;
+    right: 0;
+    background: white;
+}
+.custom-opt::before {
+    left: -10px;
+    content: "";
+    position: absolute;
+    top: 0;
+    width: 10px;
+    bottom: -1px;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    box-shadow: inset -10px 0 10px -10px rgb(0 0 0 / 15%);
+    touch-action: none;
+    pointer-events: none;
 }
 </style>
