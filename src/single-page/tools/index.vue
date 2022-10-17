@@ -9,7 +9,7 @@
                 class="search-input" />
             <el-button size="small" type="primary" style="height: 28px;border-radius: 0 3px 3px 0;" @click="searchHandle">MD5加密</el-button>
         </div>
-        <el-input type="textarea" resize="none" v-model="md5Result" />
+        <el-input class="tool-textarea" type="textarea" resize="none" v-model="md5Result" />
     </div>
 </template>
 
@@ -59,6 +59,9 @@ export default {
 </style>
 
 <style>
+.tool-textarea .el-textarea__inner{
+    box-shadow: 0 0 0 1px #dcdfe6 inset!important;
+}
 .search-input-wrap .el-input__inner {
     height: 28px;
     border-radius: 4px 0 0 4px;
