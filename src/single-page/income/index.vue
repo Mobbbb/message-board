@@ -10,9 +10,9 @@
             <el-tab-pane label="收益录入" name="table">
                 <div class="table-wrap">
                     <el-table class="incomeTalbe" :data="tableData">
-                        <el-table-column prop="date" label="日期" show-overflow-tooltip />
-                        <el-table-column prop="num" label="收益" :width="overMediaCritical ? numWidth : ''" />
-                        <el-table-column prop="name" label="角色" show-overflow-tooltip>
+                        <el-table-column prop="date" label="日期" :width="dateWidth" />
+                        <el-table-column prop="num" label="收益" :width="numWidth" />
+                        <el-table-column prop="name" label="角色" :width="nameWidth">
                             <template #default="scope">
                                 <div>
                                     <span v-if="scope.row.name.includes('j')">小金</span>
@@ -32,23 +32,23 @@
                             </template>
                         </el-table-column>
                     </el-table>
-                    <div class="table-input-wrap">
-                        <div style="width: 100%;">
-                            <el-date-picker v-model="date" type="date" placeholder="日期" :editable="false" :clearable="false" style="width: 90px;" />
+                    <div class="table-input-wrap" :style="{ width: `${wrapWidth}px` }">
+                        <div :style="{ width: `${dateWidth}px`, height: '32px' }">
+                            <el-date-picker v-model="date" type="date" placeholder="日期" :editable="false" :clearable="false" style="width: 80px;" />
                         </div>
-                        <div style="padding: 0 6px;box-sizing: border-box;" :style="overMediaCritical ? { width: `${numWidth}px`, flexShrink: 0 } : { width: '100%' }">
+                        <div :style="{ width: `${numWidth}px`, height: '32px' }">
                             <el-input-number v-model="num" class="table-input-number" :controls="false" style="width: 50px;" />
                         </div>
-                        <div style="width: 100%;">
-                            <el-select v-model="name" multiple placeholder="角色" style="width: 130px;">
+                        <div :style="{ width: `${nameWidth}px`, height: '32px' }">
+                            <el-select v-model="name" multiple placeholder="角色" style="width: 120px;">
                                 <el-option label="金" value="j"></el-option>
                                 <el-option label="银" value="y"></el-option>
                             </el-select>
                         </div>
                         <div style="width: 60px;flex-shrink: 0;"></div>
-                    </div>
-                    <div class="custom-opt">
-                        <el-button type="primary" size="small" @click="submitHandle">录入</el-button>
+                        <div class="custom-opt">
+                            <el-button type="primary" size="small" @click="submitHandle">录入</el-button>
+                        </div>
                     </div>
                 </div>
             </el-tab-pane>
@@ -76,7 +76,11 @@ export default {
 
         const festivalList = ['2022-09-10', '2022-09-11', '2022-09-12', '2022-10-01', '2022-10-02', '2022-10-03', 
             '2022-10-04', '2022-10-05', '2022-10-06', '2022-10-07']
-        const numWidth = 62
+
+        let dateWidth = ref(90)
+        let numWidth = ref(62)
+        let nameWidth = ref(120)
+        let wrapWidth = ref(0)
 
         let result1 = []
         let result2 = []
@@ -91,6 +95,11 @@ export default {
             fetchInsertLogHandle()
             await getTableData()
             getDayIncome()
+            let chartTabWidth = parseInt(document.getElementsByClassName('chart-tab')[0].getBoundingClientRect().width)
+            dateWidth.value = parseInt((chartTabWidth - 60) * 90 / (90 + 62 + 120))
+            numWidth.value = parseInt((chartTabWidth - 60) * 62 / (90 + 62 + 120))
+            nameWidth.value = parseInt((chartTabWidth - 60) * 120 / (90 + 62 + 120))
+            wrapWidth.value = dateWidth.value + numWidth.value + nameWidth.value + 60
         })
 
         onBeforeUnmount(() => {
@@ -242,6 +251,9 @@ export default {
 
         return {
             numWidth,
+            dateWidth,
+            nameWidth,
+            wrapWidth,
             overMediaCritical,
             tableData,
             activeName,
@@ -282,7 +294,7 @@ export default {
     position: absolute;
     display: flex;
     align-items: center;
-    top: 41px;
+    top: 40px;
     z-index: 10;
     height: 48px;
     width: 100%;
@@ -306,8 +318,8 @@ export default {
     height: 100%!important;
 }
 .el-input--suffix .el-input__inner {
-    padding-right: 6px!important;
-    padding-left: 6px!important;
+    padding-right: 2px!important;
+    padding-left: 4px!important;
 }
 .el-tag--default .el-tag__close {
     margin-left: 0!important;
@@ -338,22 +350,23 @@ export default {
 .el-table--border .el-table__inner-wrapper::after, .el-table--border::after, .el-table--border::before, .el-table__inner-wrapper::before {
     display: none;
 }
-.table-input-number .el-input .el-input__inner {
+.table-input-number.is-without-controls .el-input .el-input__inner {
     padding-left: 4px;
     padding-right: 4px;
 }
 .custom-opt {
     width: 60px;
     height: 48px;
-    flex-shrink: 0;
     display: flex;
     justify-content: center;
     align-items: center;
     position: absolute;
-    top: 40px;
+    top: 0;
     z-index: 10;
     right: 0;
     background: white;
+    border-bottom: 1px solid #ebeef5;
+    box-sizing: border-box;
 }
 .custom-opt::before {
     left: -10px;
@@ -367,5 +380,8 @@ export default {
     box-shadow: inset -10px 0 10px -10px rgb(0 0 0 / 15%);
     touch-action: none;
     pointer-events: none;
+}
+.table-input-wrap .el-select__tags > span {
+    margin-left: 6px!important;
 }
 </style>

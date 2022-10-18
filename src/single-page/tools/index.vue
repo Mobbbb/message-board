@@ -59,8 +59,21 @@ export default {
 </style>
 
 <style>
-.tool-textarea .el-textarea__inner{
-    box-shadow: 0 0 0 1px #dcdfe6 inset!important;
+.tool-textarea > textarea{
+    border: 1px solid #dcdfe6;
+    box-shadow: none;
+    transition: border .2s cubic-bezier(0.645, 0.045, 0.355, 1);
+    padding-left: 8px;
+    padding-right: 8px;
+    font-size: 14px;
+}
+.tool-textarea > .el-textarea__inner:hover {
+    box-shadow: none;
+    border: 1px solid #c0c4cc;
+}
+.tool-textarea > .el-textarea__inner:focus {
+    box-shadow: none;
+    border: 1px solid #409eff;
 }
 .search-input-wrap .el-input__inner {
     height: 28px;
