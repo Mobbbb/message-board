@@ -1,6 +1,6 @@
 import { genVH } from '@/libs/util'
 
-export const getOption = (result1 = [], result2 = []) => {
+export const getOption = (result1 = [], result2 = [], hideLabel = false) => {
     let dataAll = [...result1.map(item => item.num ? item.num : 0), ...result2.map(item => item.num ? item.num : 0)]
     dataAll.sort((a, b) => b - a)
 
@@ -82,10 +82,69 @@ export const getOption = (result1 = [], result2 = []) => {
             {
                 name: '小金',
                 type: 'line',
-                data: result1.map(item => item.num),
+                data: result1.map((item, index) => {
+                    if (index === result2.length - 1 || !hideLabel) {
+                        return {
+                            value: item.num,
+                        }
+                    }
+                    return {
+                        value: item.num,
+                        symbol: 'none',
+                        label: {
+                            show: false,
+                        },
+                    }
+                }),
                 connectNulls: true,
                 smooth: true,
                 lineStyle: {
+                    color: '#ef97b2',
+                },
+                itemStyle: {
+                    color: '#ef97b2',
+                },
+                label: {
+                    show: true,
+                    fontSize,
+                },
+                areaStyle: {
+                    opacity: 0.9,
+                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                        {
+                            offset: 0,
+                            color: 'rgba(238, 178, 194, 1)'
+                        },
+                        {
+                            offset: 1,
+                            color: 'rgba(241, 208, 218, 0.3)'
+                        }
+                    ])
+                },
+            },
+            {
+                name: '小银',
+                type: 'line',
+                data: result2.map((item, index) => {
+                    if (index === result2.length - 1 || !hideLabel) {
+                        return {
+                            value: item.num,
+                        }
+                    }
+                    return {
+                        value: item.num,
+                        symbol: 'none',
+                        label: {
+                            show: false,
+                        },
+                    }
+                }),
+                connectNulls: true,
+                smooth: true,
+                lineStyle: {
+                    color: '#8196d5',
+                },
+                itemStyle: {
                     color: '#8196d5',
                 },
                 label: {
@@ -102,33 +161,6 @@ export const getOption = (result1 = [], result2 = []) => {
                         {
                             offset: 1,
                             color: 'rgba(217, 227, 255, 0.3)'
-                        }
-                    ])
-                },
-            },
-            {
-                name: '小银',
-                type: 'line',
-                data: result2.map(item => item.num),
-                connectNulls: true,
-                smooth: true,
-                lineStyle: {
-                    color: '#7dcf15',
-                },
-                label: {
-                    show: true,
-                    fontSize,
-                },
-                areaStyle: {
-                    opacity: 0.9,
-                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                        {
-                            offset: 0,
-                            color: 'rgba(169, 213, 151, 1)'
-                        },
-                        {
-                            offset: 1,
-                            color: 'rgba(225, 255, 212, 0.3)'
                         }
                     ])
                 },

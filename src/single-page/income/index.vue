@@ -154,9 +154,9 @@ export default {
 
             if (!myChart2) {
                 myChart2 = echarts.init(document.getElementById('incomeChart2'))
-                myChart2.setOption(getOption(formatData(data1), formatData(data2)))
+                myChart2.setOption(getOption(formatData(data1), formatData(data2), true))
             } else {
-                myChart2.setOption(getOption(formatData(data1), formatData(data2)), true)
+                myChart2.setOption(getOption(formatData(data1), formatData(data2), true), true)
             }
         }
 
