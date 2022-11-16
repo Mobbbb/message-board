@@ -12,15 +12,7 @@
                     <el-table class="incomeTalbe" :data="tableData">
                         <el-table-column prop="date" label="日期" :width="dateWidth" />
                         <el-table-column prop="num" label="收益" :width="numWidth" />
-                        <el-table-column prop="name" label="角色" :width="nameWidth">
-                            <template #default="scope">
-                                <div>
-                                    <span v-if="scope.row.name.includes('j')">小金</span>
-                                    <span v-if="scope.row.name.includes('y') && scope.row.name.includes('j')">、</span>
-                                    <span v-if="scope.row.name.includes('y')">小银</span>
-                                </div>
-                            </template>
-                        </el-table-column>
+                        <el-table-column prop="showName" label="角色" :width="nameWidth" />
                         <el-table-column fixed="right" label="操作" width="60" align="center">
                             <template #default="scope">
                                 <el-button link
@@ -43,6 +35,7 @@
                             <el-select v-model="name" multiple placeholder="角色" style="width: 120px;">
                                 <el-option label="金" value="j"></el-option>
                                 <el-option label="银" value="y"></el-option>
+                                <el-option label="其他" value="other"></el-option>
                             </el-select>
                         </div>
                         <div style="width: 60px;flex-shrink: 0;"></div>
@@ -84,6 +77,7 @@ export default {
 
         let result1 = []
         let result2 = []
+        let result3 = []
 
         let myChart1 = null
         let myChart2 = null
@@ -120,9 +114,9 @@ export default {
 
             if (!myChart1) {
                 myChart1 = echarts.init(document.getElementById('incomeChart1'))
-                myChart1.setOption(getOption(result1, result2))
+                myChart1.setOption(getOption(result1, result2, result3))
             } else {
-                myChart1.setOption(getOption(result1, result2), true)
+                myChart1.setOption(getOption(result1, result2, result3), true)
             }
         }
 
@@ -131,6 +125,7 @@ export default {
 
             let data1 = []
             let data2 = []
+            let data3 = []
             result1.forEach((item, index) => {
                 if (index) {
                     data1.push({
@@ -151,18 +146,29 @@ export default {
                     data2.push(item)
                 }
             })
+            result3.forEach((item, index) => {
+                if (index) {
+                    data3.push({
+                        num: item.num + data3[index - 1].num,
+                        date: item.date,
+                    })
+                } else {
+                    data3.push(item)
+                }
+            })
 
             if (!myChart2) {
                 myChart2 = echarts.init(document.getElementById('incomeChart2'))
-                myChart2.setOption(getOption(formatData(data1), formatData(data2), true))
+                myChart2.setOption(getOption(formatData(data1), formatData(data2), formatData(data3), true))
             } else {
-                myChart2.setOption(getOption(formatData(data1), formatData(data2), true), true)
+                myChart2.setOption(getOption(formatData(data1), formatData(data2), formatData(data3), true), true)
             }
         }
 
         const setRes = () => {
             result1 = []
             result2 = []
+            result3 = []
             tableData.value.forEach(item => {
                 if (!Array.isArray(item.name)) {
                     item.name = item.name.split(',')
@@ -173,10 +179,14 @@ export default {
                 if (item.name.includes('y')) {
                     result2.push(item)
                 }
+                if (item.name.includes('other')) {
+                    result3.push(item)
+                }
             })
 
             result1 = formatData(result1)
             result2 = formatData(result2)
+            result3 = formatData(result3)
         }
 
         const handleClick = async (params) => {
@@ -193,7 +203,7 @@ export default {
 
         const formatData = (data) => {            
             let result = []
-            if (!data.length) return
+            if (!data.length) return []
             data.sort((a, b) => Date.parse(new Date(b.date)) - Date.parse(new Date(a.date)))
             let dateArr = getDateBetween(data[data.length - 1].date, data[0].date)
 
@@ -224,8 +234,24 @@ export default {
         }
 
         const getTableData = async () => {
+            const nameMap = {
+                'j': '小金',
+                'y': '小银',
+                'other': '其他',
+            }
             const res = await fetchIncomeInfo()
             res.data.sort((a, b) => Date.parse(new Date(b.date)) - Date.parse(new Date(a.date)))
+            res.data.forEach(item => {
+                if (!Array.isArray(item.name)) {
+                    item.name = item.name.split(',')
+                }
+                const nameArr = []
+                item.name.forEach(cell => {
+                    nameArr.push(nameMap[cell])
+                })
+                item.showName = nameArr.join('、')
+            })
+                
             tableData.value = res.data || []
         }
 
@@ -240,6 +266,7 @@ export default {
                 name: name.value.join(',')
             }
             await fetchInsertIncome(params)
+            name.value = ['j', 'y']
             getTableData()
             num.value = 0
         }

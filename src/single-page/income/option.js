@@ -1,9 +1,15 @@
 import { genVH } from '@/libs/util'
 
-export const getOption = (result1 = [], result2 = [], hideLabel = false) => {
-    let dataAll = [...result1.map(item => item.num ? item.num : 0), ...result2.map(item => item.num ? item.num : 0)]
+export const getOption = (result1 = [], result2 = [], result3 = [], hideLabel = false) => {
+    let dataAll = [
+        ...result1.map(item => item.num ? item.num : 0), 
+        ...result2.map(item => item.num ? item.num : 0),
+        ...result3.map(item => item.num ? item.num : 0),
+    ]
     dataAll.sort((a, b) => b - a)
 
+    // 长度补齐
+    result3 = [...new Array(result1.length - result3.length).fill(0), ...result3]
     const fontSize = genVH(8)
 
     return {
@@ -83,7 +89,16 @@ export const getOption = (result1 = [], result2 = [], hideLabel = false) => {
                 name: '小金',
                 type: 'line',
                 data: result1.map((item, index) => {
-                    if (index === result2.length - 1 || !hideLabel) {
+                    if (!item.num) {
+                        return {
+                            value: item.num,
+                            symbol: 'none',
+                            label: {
+                                show: false,
+                            },
+                        }
+                    }
+                    if (index === result1.length - 1 || !hideLabel) {
                         return {
                             value: item.num,
                         }
@@ -126,6 +141,15 @@ export const getOption = (result1 = [], result2 = [], hideLabel = false) => {
                 name: '小银',
                 type: 'line',
                 data: result2.map((item, index) => {
+                    if (!item.num) {
+                        return {
+                            value: item.num,
+                            symbol: 'none',
+                            label: {
+                                show: false,
+                            },
+                        }
+                    }
                     if (index === result2.length - 1 || !hideLabel) {
                         return {
                             value: item.num,
@@ -164,7 +188,59 @@ export const getOption = (result1 = [], result2 = [], hideLabel = false) => {
                         }
                     ])
                 },
-            }
+            },
+            {
+                name: '其他',
+                type: 'line',
+                data: result3.map((item, index) => {
+                    if (!item.num) {
+                        return {
+                            value: item.num,
+                            symbol: 'none',
+                            label: {
+                                show: false,
+                            },
+                        }
+                    }
+                    if (index === result3.length - 1 || !hideLabel) {
+                        return {
+                            value: item.num,
+                        }
+                    }
+                    return {
+                        value: item.num,
+                        symbol: 'none',
+                        label: {
+                            show: false,
+                        },
+                    }
+                }),
+                connectNulls: true,
+                smooth: true,
+                lineStyle: {
+                    color: '#7dcf15',
+                },
+                itemStyle: {
+                    color: '#7dcf15',
+                },
+                label: {
+                    show: true,
+                    fontSize,
+                },
+                areaStyle: {
+                    opacity: 0.9,
+                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                        {
+                            offset: 0,
+                            color: 'rgba(169, 213, 151, 1)'
+                        },
+                        {
+                            offset: 1,
+                            color: 'rgba(225, 255, 212, 0.3)'
+                        }
+                    ])
+                },
+            },
         ]
     }
 }
