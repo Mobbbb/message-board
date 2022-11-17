@@ -1,6 +1,6 @@
 import { genVH } from '@/libs/util'
 
-export const getOption = (result1 = [], result2 = [], result3 = [], hideLabel = false) => {
+export const getOption = (result1 = [], result2 = [], result3 = [], showLast = false) => {
     let dataAll = [
         ...result1.map(item => item.num ? item.num : 0), 
         ...result2.map(item => item.num ? item.num : 0),
@@ -9,7 +9,7 @@ export const getOption = (result1 = [], result2 = [], result3 = [], hideLabel = 
     dataAll.sort((a, b) => b - a)
 
     // 长度补齐
-    result3 = [...new Array(result1.length - result3.length).fill(0), ...result3]
+    result3 = [...new Array(result1.length - result3.length).fill({ num: 0 }), ...result3]
     const fontSize = genVH(8)
 
     return {
@@ -89,28 +89,9 @@ export const getOption = (result1 = [], result2 = [], result3 = [], hideLabel = 
                 name: '小金',
                 type: 'line',
                 data: result1.map((item, index) => {
-                    if (!item.num) {
-                        return {
-                            value: item.num,
-                            symbol: 'none',
-                            label: {
-                                show: false,
-                            },
-                        }
-                    }
-                    if (index === result1.length - 1 || !hideLabel) {
-                        return {
-                            value: item.num,
-                        }
-                    }
-                    return {
-                        value: item.num,
-                        symbol: 'none',
-                        label: {
-                            show: false,
-                        },
-                    }
+                    return formatLabel(result1, item, index, showLast)
                 }),
+                showAllSymbol: true,
                 connectNulls: true,
                 smooth: true,
                 lineStyle: {
@@ -141,28 +122,9 @@ export const getOption = (result1 = [], result2 = [], result3 = [], hideLabel = 
                 name: '小银',
                 type: 'line',
                 data: result2.map((item, index) => {
-                    if (!item.num) {
-                        return {
-                            value: item.num,
-                            symbol: 'none',
-                            label: {
-                                show: false,
-                            },
-                        }
-                    }
-                    if (index === result2.length - 1 || !hideLabel) {
-                        return {
-                            value: item.num,
-                        }
-                    }
-                    return {
-                        value: item.num,
-                        symbol: 'none',
-                        label: {
-                            show: false,
-                        },
-                    }
+                    return formatLabel(result1, item, index, showLast)
                 }),
+                showAllSymbol: true,
                 connectNulls: true,
                 smooth: true,
                 lineStyle: {
@@ -193,28 +155,9 @@ export const getOption = (result1 = [], result2 = [], result3 = [], hideLabel = 
                 name: '其他',
                 type: 'line',
                 data: result3.map((item, index) => {
-                    if (!item.num) {
-                        return {
-                            value: item.num,
-                            symbol: 'none',
-                            label: {
-                                show: false,
-                            },
-                        }
-                    }
-                    if (index === result3.length - 1 || !hideLabel) {
-                        return {
-                            value: item.num,
-                        }
-                    }
-                    return {
-                        value: item.num,
-                        symbol: 'none',
-                        label: {
-                            show: false,
-                        },
-                    }
+                    return formatLabel(result1, item, index, showLast)
                 }),
+                showAllSymbol: true,
                 connectNulls: true,
                 smooth: true,
                 lineStyle: {
@@ -242,5 +185,36 @@ export const getOption = (result1 = [], result2 = [], result3 = [], hideLabel = 
                 },
             },
         ]
+    }
+}
+
+const formatLabel = (data, item, index, showLast) => {
+    if (showLast) {
+        if (index === data.length - 1) {
+            return {
+                value: item.num,
+            }
+        } else {
+            return {
+                value: item.num,
+                symbol: 'none',
+                label: {
+                    show: false,
+                },
+            }
+        }
+    }
+    
+    if (item.num === 0) {
+        return {
+            value: item.num,
+            symbol: 'none',
+            label: {
+                show: false,
+            },
+        }
+    }
+    return {
+        value: item.num,
     }
 }

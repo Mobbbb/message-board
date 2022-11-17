@@ -43,6 +43,7 @@ export default {
 <style scoped>
 .main-refresh {
     position: absolute;
+    height: 26px;
     width: 90px;
     bottom: 8px;
     right: 12px;
@@ -50,11 +51,10 @@ export default {
     background-color: #409eff;
     border: 1px solid #409eff;
     color: white;
-    border-radius: 2px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 5px 12px 6px 12px;
+    padding: 0 12px;
     cursor: pointer;
     box-sizing: border-box;
     border-radius: 4px;
@@ -75,7 +75,7 @@ export default {
     display: block;
     font-size: 12px;
     line-height: 12px;
-    padding-top: 1px;
+    height: 12px;
 }
 @keyframes refresh {
     0% {
@@ -89,6 +89,7 @@ export default {
     width: 12px;
     height: 12px;
     color: white;
+    display: block;
 }
 .red-point {
     position: absolute;
