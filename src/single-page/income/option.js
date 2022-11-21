@@ -1,6 +1,6 @@
 import { genVH } from '@/libs/util'
 
-export const getOption = (result1 = [], result2 = [], result3 = [], showLast = false) => {
+export const getOption = (result1 = [], result2 = [], result3 = [], onlyShowLast = false) => {
     let dataAll = [
         ...result1.map(item => item.num ? item.num : 0), 
         ...result2.map(item => item.num ? item.num : 0),
@@ -89,11 +89,12 @@ export const getOption = (result1 = [], result2 = [], result3 = [], showLast = f
                 name: '小金',
                 type: 'line',
                 data: result1.map((item, index) => {
-                    return formatLabel(result1, item, index, showLast)
+                    return formatLabel(result1, item, index, onlyShowLast)
                 }),
                 showAllSymbol: true,
                 connectNulls: true,
                 smooth: true,
+                animationDuration: 500,
                 lineStyle: {
                     color: '#ef97b2',
                 },
@@ -122,11 +123,12 @@ export const getOption = (result1 = [], result2 = [], result3 = [], showLast = f
                 name: '小银',
                 type: 'line',
                 data: result2.map((item, index) => {
-                    return formatLabel(result1, item, index, showLast)
+                    return formatLabel(result1, item, index, onlyShowLast)
                 }),
                 showAllSymbol: true,
                 connectNulls: true,
                 smooth: true,
+                animationDuration: 500,
                 lineStyle: {
                     color: '#8196d5',
                 },
@@ -155,11 +157,12 @@ export const getOption = (result1 = [], result2 = [], result3 = [], showLast = f
                 name: '其他',
                 type: 'line',
                 data: result3.map((item, index) => {
-                    return formatLabel(result1, item, index, showLast)
+                    return formatLabel(result1, item, index, onlyShowLast)
                 }),
                 showAllSymbol: true,
                 connectNulls: true,
                 smooth: true,
+                animationDuration: 500,
                 lineStyle: {
                     color: '#7dcf15',
                 },
@@ -188,8 +191,8 @@ export const getOption = (result1 = [], result2 = [], result3 = [], showLast = f
     }
 }
 
-const formatLabel = (data, item, index, showLast) => {
-    if (showLast) {
+const formatLabel = (data, item, index, onlyShowLast) => {
+    if (onlyShowLast) {
         if (index === data.length - 1) {
             return {
                 value: item.num,

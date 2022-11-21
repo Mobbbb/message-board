@@ -112,12 +112,11 @@ export default {
         const getDayIncome = () => {
             setRes()
 
-            if (!myChart1) {
+            nextTick(() => {
+                document.getElementById('incomeChart1').removeAttribute('_echarts_instance_')
                 myChart1 = echarts.init(document.getElementById('incomeChart1'))
                 myChart1.setOption(getOption(result1, result2, result3))
-            } else {
-                myChart1.setOption(getOption(result1, result2, result3), true)
-            }
+            })
         }
 
         const getTotalIncome = () => {
@@ -157,12 +156,11 @@ export default {
                 }
             })
 
-            if (!myChart2) {
+            nextTick(() => {
+                document.getElementById('incomeChart2').removeAttribute('_echarts_instance_')
                 myChart2 = echarts.init(document.getElementById('incomeChart2'))
                 myChart2.setOption(getOption(formatData(data1), formatData(data2), formatData(data3), true))
-            } else {
-                myChart2.setOption(getOption(formatData(data1), formatData(data2), formatData(data3), true), true)
-            }
+            })
         }
 
         const setRes = () => {
@@ -191,9 +189,7 @@ export default {
 
         const handleClick = async (params) => {
             if (params.props.name === 'add') {
-                nextTick(() => {
-                    getTotalIncome()
-                })
+                getTotalIncome()
             } else if (params.props.name === 'table') {
                 getTableData()
             } else {
@@ -354,7 +350,7 @@ export default {
 .el-tag--default {
     padding: 4px!important;
 }
-.el-table__body-wrapper {
+.incomeTalbe .el-table__body-wrapper {
     padding-top: 48px!important;
 }
 .el-table .cell {
@@ -374,7 +370,10 @@ export default {
     height: calc(100% - 40px)!important;
     box-sizing: border-box;
 }
-.el-table--border .el-table__inner-wrapper::after, .el-table--border::after, .el-table--border::before, .el-table__inner-wrapper::before {
+.incomeTalbe .el-table--border .el-table__inner-wrapper::after, 
+.incomeTalbe .el-table--border::after, 
+.incomeTalbe .el-table--border::before, 
+.incomeTalbe .el-table__inner-wrapper::before {
     display: none;
 }
 .table-input-number.is-without-controls .el-input .el-input__inner {
