@@ -61,7 +61,6 @@ export default {
     name: 'income',
     setup() {
         const store = new useStore()
-        const activeName = ref('day')
         const tableData = ref([])
         const date = ref(new Date())
         const num = ref(0)
@@ -83,17 +82,27 @@ export default {
         let myChart2 = null
 
         const overMediaCritical = computed(() => store.getters['app/overMediaCritical'])
+        const activeName = computed({
+            get() {
+                return store.state.app.activeTabName
+            },
+            set(value) {
+                setActiveTabName(value)
+            },
+        })
+        const setActiveTabName = (value) => store.commit('app/setActiveTabName', value)
         const fetchInsertLogHandle = (value) => store.dispatch('app/fetchInsertLogHandle', value)
 
         onMounted(async () => {
-            fetchInsertLogHandle()
-            await getTableData()
-            getDayIncome()
             let chartTabWidth = parseInt(document.getElementsByClassName('chart-tab')[0].getBoundingClientRect().width)
             dateWidth.value = parseInt((chartTabWidth - 60) * 90 / (90 + 62 + 120))
             numWidth.value = parseInt((chartTabWidth - 60) * 62 / (90 + 62 + 120))
             nameWidth.value = parseInt((chartTabWidth - 60) * 120 / (90 + 62 + 120))
             wrapWidth.value = dateWidth.value + numWidth.value + nameWidth.value + 60
+
+            fetchInsertLogHandle()
+            await getTableData()
+            handleClick()
         })
 
         onBeforeUnmount(() => {
@@ -187,10 +196,10 @@ export default {
             result3 = formatData(result3)
         }
 
-        const handleClick = async (params) => {
-            if (params.props.name === 'add') {
+        const handleClick = async () => {
+            if (activeName.value === 'add') {
                 getTotalIncome()
-            } else if (params.props.name === 'table') {
+            } else if (activeName.value === 'table') {
                 getTableData()
             } else {
                 getDayIncome()

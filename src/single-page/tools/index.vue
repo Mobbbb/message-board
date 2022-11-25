@@ -22,12 +22,12 @@
                         inactive-text="公式"
                         class="result-btn" />
             <span class="tips-text" v-if="isInPc">(按回车快速切换)</span>
-            <el-radio-group v-model="currentGoodsType" style="display: block;">
+            <el-radio-group v-model="currentGoodsType" @change="changeType" style="display: block;">
                 <el-radio :label="key" v-for="(item, key) in goodsConfig" :key="key" style="height: 26px;">{{key}}</el-radio>
             </el-radio-group>
             <div v-show="showNumber">
                 <div class="margin-line-wrap">
-                    <el-input-number type="number" v-model="goods.lot" size="small" style="width: 100px;margin-right: 3px;" />
+                    <el-input-number type="number" v-model="lot" size="small" style="width: 100px;margin-right: 3px;" />
                     <span class="operator">x</span>
                 </div>
                 <div class="margin-line-wrap">
@@ -35,9 +35,9 @@
                     <span class="name-span" :class="spanNumberClass">{{currentGoodsConfig.num}}</span>
                     <span class="operator">*</span>
                     <span class="punctuation">(</span>
-                    <el-input-number type="number" v-model="goods.pricePrev" size="small" style="width: 100px;margin: 0 3px;" />
+                    <el-input-number type="number" v-model="pricePrev" size="small" style="width: 100px;margin: 0 3px;" />
                     <span class="operator">-</span> 
-                    <el-input-number type="number" v-model="goods.priceNext" size="small" style="width: 100px;margin: 0 3px;" />
+                    <el-input-number type="number" v-model="priceNext" size="small" style="width: 100px;margin: 0 3px;" />
                     <span class="punctuation">)</span>
                     <span class="operator">-</span>
                     <span class="name-span" :class="spanNumberClass">{{currentCommission}}</span>
@@ -80,24 +80,21 @@
 </template>
 
 <script>
-import { ref, onMounted, reactive, computed } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useStore } from 'vuex'
 import config, { PC } from '@/config'
 import md5 from '@/libs/md5'
+import { goodsConfig } from '@/store/app'
 
 export default {
     name: 'home',
     setup() {
         const store = new useStore()
+
         const showNumber = ref(true)
         const inputText = ref('')
         const md5Result = ref('')
         const isToday = ref(false)
-        const goods = reactive({
-            lot: 1,
-            pricePrev: 0,
-            priceNext: 0,
-        })
         const columns = [
             {
                 percent: 4 / 26,
@@ -112,23 +109,52 @@ export default {
                 label: '11 / 26',
             },
         ]
-        const currentGoodsType = ref('eb')
-
-        const goodsConfig = {
-            eb: {
-                num: 5,
-                commission: 6,
-                defaultPrice: 8000,
-            },
-            MA: {
-                num: 10,
-                commission: [4, 6],
-                defaultPrice: 2500,
-            }
-        }
+        
+        const fetchInsertLogHandle = (value) => store.dispatch('app/fetchInsertLogHandle', value)
+        const setGoodsLot = (value) => store.commit('app/setGoodsLot', value)
+        const setGoodsPricePrev = (value) => store.commit('app/setGoodsPricePrev', value)
+        const setGoodsPriceNext = (value) => store.commit('app/setGoodsPriceNext', value)
+        const setGoodsType = (value) => store.commit('app/setGoodsType', value)
 
         const isInPc = computed(() => config.device === PC)
         const spanNumberClass = computed(() => showNumber.value ? 'result-number' : '')
+        const goods = computed(() => store.state.app.goods)
+
+        const lot = computed({
+            get() {
+                return goods.value.lot
+            },
+            set(value) {
+                setGoodsLot(value)
+            },
+        })
+
+        const pricePrev = computed({
+            get() {
+                return goods.value.pricePrev
+            },
+            set(value) {
+                setGoodsPricePrev(value)
+            },
+        })
+
+        const priceNext = computed({
+            get() {
+                return goods.value.priceNext
+            },
+            set(value) {
+                setGoodsPriceNext(value)
+            },
+        })
+
+        const currentGoodsType = computed({
+            get() {
+                return goods.value.type
+            },
+            set(value) {
+                setGoodsType(value)
+            },
+        })
 
         const tableData = computed(() => {
             const obj = {}
@@ -139,8 +165,6 @@ export default {
         })
 
         const currentGoodsConfig = computed(() => {
-            goods.pricePrev = goodsConfig[currentGoodsType.value].defaultPrice
-            goods.priceNext = goodsConfig[currentGoodsType.value].defaultPrice
             return goodsConfig[currentGoodsType.value]
         })
 
@@ -149,7 +173,10 @@ export default {
         })
         
         const goodsResult = computed(() => {
-            return goods.lot * (currentGoodsConfig.value.num * (goods.pricePrev - goods.priceNext) - currentCommission.value)
+            return goods.value.lot * 
+                (currentGoodsConfig.value.num * 
+                    (goods.value.pricePrev - goods.value.priceNext) - currentCommission.value
+                )
         })
 
         const currentCommission = computed(() => {
@@ -163,8 +190,6 @@ export default {
                 return currentGoodsConfig.value.commission
             }
         })
-        
-        const fetchInsertLogHandle = (value) => store.dispatch('app/fetchInsertLogHandle', value)
 
         onMounted(() => {
             fetchInsertLogHandle()
@@ -190,8 +215,15 @@ export default {
             md5Result.value = md5(inputText.value)
         }
 
+        const changeType = () => {
+            setGoodsPricePrev(currentGoodsConfig.value.defaultPrice)
+            setGoodsPriceNext(currentGoodsConfig.value.defaultPrice)
+        }
+
         return {
-            goods,
+            lot,
+            pricePrev,
+            priceNext,
             md5Result,
             inputText,
             goodsConfig,
@@ -207,6 +239,7 @@ export default {
             columns,
             tableData,
             searchHandle,
+            changeType,
         }
     },
 }

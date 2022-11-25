@@ -7,6 +7,19 @@ import router from '@/router'
 
 const version = require('package').version
 
+export const goodsConfig = {
+    eb: {
+        num: 5,
+        commission: 6,
+        defaultPrice: 8000,
+    },
+    MA: {
+        num: 10,
+        commission: [4, 6],
+        defaultPrice: 2500,
+    }
+}
+
 const app = {
     namespaced: true,
     state() {
@@ -21,6 +34,15 @@ const app = {
             listData: [],
             originData: [],
             activeNavIndex: '/',
+
+            activeTabName: 'day',
+
+            goods: {
+                type: 'eb',
+                lot: 1,
+                pricePrev: goodsConfig.eb.defaultPrice,
+                priceNext: goodsConfig.eb.defaultPrice,
+            },
         }
     },
     getters: {
@@ -37,6 +59,21 @@ const app = {
         },
     },
     mutations: {
+        setActiveTabName(state, value) {
+            state.activeTabName = value
+        },
+        setGoodsType(state, value) {
+            state.goods.type = value
+        },
+        setGoodsLot(state, value) {
+            state.goods.lot = value
+        },
+        setGoodsPricePrev(state, value) {
+            state.goods.pricePrev = value
+        },
+        setGoodsPriceNext(state, value) {
+            state.goods.priceNext = value
+        },
         setListData(state, value) {
             state.listData = value
         },
