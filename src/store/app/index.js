@@ -10,12 +10,12 @@ const version = require('package').version
 export const goodsConfig = {
     eb: {
         num: 5,
-        commission: 6,
+        commission: 24,
         defaultPrice: 8000,
     },
     MA: {
         num: 10,
-        commission: [4, 6],
+        commission: [16, 32],
         defaultPrice: 2500,
     }
 }
