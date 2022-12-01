@@ -22,57 +22,185 @@
                         inactive-text="公式"
                         class="result-btn" />
             <span class="tips-text" v-if="isInPc">(按回车快速切换)</span>
-            <el-radio-group v-model="currentGoodsType" @change="changeType" style="display: block;">
+            <el-radio-group v-model="currentGoodsType" @change="changeType" style="display: block;margin-bottom: 4px;">
                 <el-radio :label="key" v-for="(item, key) in goodsConfig" :key="key" style="height: 26px;">{{key}}</el-radio>
             </el-radio-group>
-            <div v-show="showNumber">
-                <div class="margin-line-wrap">
-                    <el-input-number type="number" v-model="lot" size="small" style="width: 100px;margin-right: 3px;" />
-                    <span class="operator">x</span>
+            <template v-if="currentGoodsConfig.commissionType === 'percent' || currentGoodsConfig.commissionType === 'array-percent'">
+                <div v-show="showNumber">
+                    <div class="line-wrap">
+                        <el-input-number @click="clickInput" type="number" v-model="lot" size="small" style="width: 100px;margin-right: 3px;" />
+                        <span class="operator">x</span>
+                        <span class="name-span" :class="spanNumberClass">{{currentGoodsConfig.num}}</span>
+                        <span class="operator">x</span>
+                    </div>
+                    <div class="line-wrap">
+                        <span class="punctuation line-punctuation">[</span>
+                    </div>
+                    <div class="line-wrap" style="padding-left: 12px;" v-if="saleOrBuy">
+                        <span class="operator minus-operator">-</span>
+                        <div style="display: inline-flex;">
+                            <span class="number-tips">开仓价</span>
+                            <el-input-number @click="clickInput" class="number-tips-input" type="number" v-model="pricePrev" size="small" style="width: 100px;margin-right: 3px;" />
+                        </div>
+                        <span class="operator">x</span>
+                        <span class="punctuation">(</span>
+                        <span class="name-span" :class="spanNumberClass">1</span>
+                        <span class="operator">+</span> 
+                        <span class="name-span" :class="spanNumberClass">{{currentCommission[0]}}</span>
+                        <span class="punctuation">)</span>
+                    </div>
+                    <div class="line-wrap" style="padding-left: 12px;">
+                        <span class="operator" v-if="saleOrBuy">+</span>
+                        <div style="display: inline-flex;">
+                            <span class="number-tips" v-if="saleOrBuy">平仓价</span>
+                            <span class="number-tips" v-else>开仓价</span>
+                            <el-input-number @click="clickInput" v-if="saleOrBuy" class="number-tips-input" type="number" v-model="priceNext" size="small" style="width: 100px;margin-right: 3px;" />
+                            <el-input-number @click="clickInput" v-else type="number" class="number-tips-input" v-model="pricePrev" size="small" style="width: 100px;margin-right: 3px;" />
+                        </div>
+                        <span class="operator">x</span>
+                        <span class="punctuation">(</span>
+                        <span class="name-span" :class="spanNumberClass">1</span>
+                        <span class="operator minus-operator">-</span>
+                        <span class="name-span" :class="spanNumberClass" v-if="saleOrBuy">{{currentCommission[1]}}</span>
+                        <span class="name-span" :class="spanNumberClass" v-else>{{currentCommission[0]}}</span>
+                        <span class="punctuation">)</span>
+                        <span class="operator" v-if="!saleOrBuy">-</span>
+                    </div>
+                    <div class="line-wrap" style="padding-left: 12px;" v-if="!saleOrBuy">
+                        <div style="display: inline-flex;">
+                            <span class="number-tips">平仓价</span>
+                            <el-input-number @click="clickInput" class="number-tips-input" type="number" v-model="priceNext" size="small" style="width: 100px;margin-right: 3px;" />
+                        </div>
+                        <span class="operator">x</span>
+                        <span class="punctuation">(</span>
+                        <span class="name-span" :class="spanNumberClass">1</span>
+                        <span class="operator">+</span> 
+                        <span class="name-span" :class="spanNumberClass">{{currentCommission[1]}}</span>
+                        <span class="punctuation">)</span>
+                    </div>
+                    <div class="line-wrap">
+                        <span class="punctuation">]</span>
+                    </div>
+                    <div class="line-wrap">
+                        <span class="operator">=</span>
+                        <span class="name-span" :class="spanNumberClass">{{goodsResult}}</span>
+                    </div>
+                    <el-radio-group v-model="saleOrBuy" style="display: block;margin-top: 6px;">
+                        <el-radio :label="1" style="height: 26px;">多</el-radio>
+                        <el-radio :label="0" style="height: 26px;">空</el-radio>
+                    </el-radio-group>
+                    <el-checkbox class="checkbox-tool" v-model="isToday" label="日内平今仓" v-if="isArrayCommission" />
                 </div>
-                <div class="margin-line-wrap">
-                    <span class="punctuation">[</span>
-                    <span class="name-span" :class="spanNumberClass">{{currentGoodsConfig.num}}</span>
-                    <span class="operator">*</span>
-                    <span class="punctuation">(</span>
-                    <el-input-number type="number" v-model="pricePrev" size="small" style="width: 100px;margin: 0 3px;" />
-                    <span class="operator">-</span> 
-                    <el-input-number type="number" v-model="priceNext" size="small" style="width: 100px;margin: 0 3px;" />
-                    <span class="punctuation">)</span>
-                    <span class="operator">-</span>
-                    <span class="name-span" :class="spanNumberClass">{{currentCommission}}</span>
-                    <span class="punctuation">]</span> 
+                <div v-show="!showNumber">
+                    <div class="line-wrap">
+                        <span class="name-span" :class="spanNumberClass">手数</span>
+                        <span class="operator">x</span>
+                        <span class="name-span" :class="spanNumberClass">交易单位</span>
+                        <span class="operator">x</span>
+                    </div>
+                    <div class="line-wrap">
+                        <span class="punctuation line-punctuation">[</span>
+                    </div>
+                    <div class="line-wrap" style="padding-left: 12px;" v-if="saleOrBuy">
+                        <span class="operator minus-operator">-</span>
+                        <span class="name-span" v-if="saleOrBuy" :class="spanNumberClass">开仓价</span>
+                        <span class="name-span" v-else :class="spanNumberClass">平仓价</span>
+                        <span class="operator">x</span>
+                        <span class="punctuation">(</span>
+                        <span class="name-span" :class="spanNumberClass">1</span>
+                        <span class="operator">+</span> 
+                        <span class="name-span" :class="spanNumberClass" v-if="saleOrBuy">开仓手续费</span>
+                        <span class="name-span" :class="spanNumberClass" v-else>平仓手续费</span>
+                        <span class="punctuation">)</span>
+                    </div>
+                    <div class="line-wrap" style="padding-left: 12px;">
+                        <span class="operator" v-if="saleOrBuy">+</span>
+                        <span class="name-span" v-if="saleOrBuy" :class="spanNumberClass">平仓价</span>
+                        <span class="name-span" v-else :class="spanNumberClass">开仓价</span>
+                        <span class="operator">x</span>
+                        <span class="punctuation">(</span>
+                        <span class="name-span" :class="spanNumberClass">1</span>
+                        <span class="operator minus-operator">-</span>
+                        <span class="name-span" :class="spanNumberClass" v-if="saleOrBuy">平仓手续费</span>
+                        <span class="name-span" :class="spanNumberClass" v-else>开仓手续费</span>
+                        <span class="punctuation">)</span>
+                        <span class="operator" v-if="!saleOrBuy">-</span>
+                    </div>
+                    <div class="line-wrap" style="padding-left: 12px;" v-if="!saleOrBuy">
+                        <span class="name-span" v-if="saleOrBuy" :class="spanNumberClass">开仓价</span>
+                        <span class="name-span" v-else :class="spanNumberClass">平仓价</span>
+                        <span class="operator">x</span>
+                        <span class="punctuation">(</span>
+                        <span class="name-span" :class="spanNumberClass">1</span>
+                        <span class="operator">+</span> 
+                        <span class="name-span" :class="spanNumberClass" v-if="saleOrBuy">开仓手续费</span>
+                        <span class="name-span" :class="spanNumberClass" v-else>平仓手续费</span>
+                        <span class="punctuation">)</span>
+                    </div>
+                    <div class="line-wrap">
+                        <span class="punctuation">]</span>
+                    </div>
+                    <div class="line-wrap">
+                        <span class="operator">=</span>
+                        <span class="name-span" :class="spanNumberClass">收益</span>
+                    </div>
+                    <el-radio-group v-model="saleOrBuy" style="display: block;">
+                        <el-radio :label="1" style="height: 26px;">多</el-radio>
+                        <el-radio :label="0" style="height: 26px;">空</el-radio>
+                    </el-radio-group>
+                    <el-checkbox class="checkbox-tool" v-model="isToday" label="日内平今仓" v-if="isArrayCommission" />
                 </div>
-                <div class="margin-line-wrap">
-                    <span class="operator">=</span>
-                    <span class="name-span" :class="spanNumberClass">{{goodsResult}}</span>
+            </template>
+            <template v-else>
+                <div v-show="showNumber">
+                    <div class="line-wrap">
+                        <el-input-number @click="clickInput" type="number" v-model="lot" size="small" style="width: 100px;margin-right: 3px;" />
+                        <span class="operator">x</span>
+                    </div>
+                    <div class="line-wrap">
+                        <span class="punctuation line-punctuation">[</span>
+                        <span class="name-span" :class="spanNumberClass">{{currentGoodsConfig.num}}</span>
+                        <span class="operator">*</span>
+                        <span class="punctuation">(</span>
+                        <el-input-number @click="clickInput" type="number" v-model="pricePrev" size="small" style="width: 94px;margin: 0 3px;" />
+                        <span class="operator">-</span> 
+                        <el-input-number @click="clickInput" type="number" v-model="priceNext" size="small" style="width: 94px;margin: 0 3px;" />
+                        <span class="punctuation">)</span>
+                        <span class="operator">-</span>
+                        <span class="name-span" :class="spanNumberClass">{{currentCommission}}</span>
+                        <span class="punctuation">]</span> 
+                    </div>
+                    <div class="line-wrap">
+                        <span class="operator">=</span>
+                        <span class="name-span" :class="spanNumberClass">{{goodsResult}}</span>
+                    </div>
+                    <el-checkbox class="checkbox-tool" v-model="isToday" label="日内平今仓" v-if="isArrayCommission" />
                 </div>
-                <el-checkbox v-model="isToday" label="日内平今仓" size="large" v-if="isArrayCommission" />
-            </div>
-            <div v-show="!showNumber">
-                <div class="line-wrap">
-                    <span class="name-span" :class="spanNumberClass">手数</span>
-                    <span class="operator">x</span>
+                <div v-show="!showNumber">
+                    <div class="line-wrap">
+                        <span class="name-span" :class="spanNumberClass">手数</span>
+                        <span class="operator">x</span>
+                    </div>
+                    <div class="line-wrap">
+                        <span class="punctuation line-punctuation">[</span>
+                        <span class="name-span" :class="spanNumberClass">交易单位</span>
+                        <span class="operator">*</span>
+                        <span class="punctuation">(</span>
+                        <span class="name-span" :class="spanNumberClass">卖出价</span>
+                        <span class="operator">-</span>
+                        <span class="name-span" :class="spanNumberClass">买入价</span>
+                        <span class="punctuation">)</span>
+                        <span class="operator">-</span>
+                        <span class="name-span" :class="spanNumberClass">手续费</span>
+                        <span class="punctuation">]</span> 
+                    </div>
+                    <div class="line-wrap">
+                        <span class="operator">=</span>
+                        <span class="name-span" :class="spanNumberClass">收益</span>
+                    </div>
                 </div>
-                <div class="line-wrap">
-                    <span class="punctuation">[</span>
-                    <span class="name-span" :class="spanNumberClass">每手最小波动</span>
-                    <span class="operator">*</span>
-                    <span class="punctuation">(</span>
-                    <span class="name-span" :class="spanNumberClass">卖出价</span>
-                    <span class="operator">-</span>
-                    <span class="name-span" :class="spanNumberClass">买入价</span>
-                    <span class="punctuation">)</span>
-                    <span class="operator">-</span>
-                    <span class="name-span" :class="spanNumberClass">手续费</span>
-                    <span class="punctuation">]</span> 
-                </div>
-                <div class="line-wrap">
-                    <span class="operator">=</span>
-                    <span class="name-span" :class="spanNumberClass">收益</span>
-                </div>
-            </div>
-            <el-table border :data="tableData">
+            </template>
+            <el-table border :data="tableData" style="margin-top: 12px;">
                 <el-table-column :prop="String(index)" :label="`占比(${column.label})`" :key="index" v-for="(column, index) in columns" />
             </el-table>
         </div>
@@ -95,6 +223,7 @@ export default {
         const inputText = ref('')
         const md5Result = ref('')
         const isToday = ref(false)
+        const saleOrBuy = ref(1)
         const columns = [
             {
                 percent: 4 / 26,
@@ -169,25 +298,47 @@ export default {
         })
 
         const isArrayCommission = computed(() => {
-            return currentGoodsConfig.value.commission instanceof Array
+            return currentGoodsConfig.value.commissionType.indexOf('array') > -1
         })
         
         const goodsResult = computed(() => {
-            return goods.value.lot * 
-                (currentGoodsConfig.value.num * 
-                    (goods.value.pricePrev - goods.value.priceNext) - currentCommission.value
-                )
+            if (currentGoodsConfig.value.commissionType === 'number' || currentGoodsConfig.value.commissionType === 'array') {
+                return goods.value.lot * 
+                    (
+                        currentGoodsConfig.value.num * 
+                        (goods.value.pricePrev - goods.value.priceNext) - currentCommission.value
+                    )
+            } else {
+                if (saleOrBuy.value) { // 多
+                    return (goods.value.lot * currentGoodsConfig.value.num *
+                        (
+                            goods.value.priceNext - // 平仓价
+                            goods.value.pricePrev - // 开仓价 
+                            goods.value.priceNext * currentCommission.value[1] - // 平仓价手续费
+                            goods.value.pricePrev * currentCommission.value[0] // 开仓价手续费
+                        )).toFixed(1)
+                } else { // 空
+                    return (goods.value.lot * currentGoodsConfig.value.num *
+                        (
+                            goods.value.pricePrev - // 开仓价 
+                            goods.value.priceNext - // 平仓价
+                            goods.value.priceNext * currentCommission.value[1] - // 平仓价手续费
+                            goods.value.pricePrev * currentCommission.value[0] // 开仓价手续费
+                        )).toFixed(1)
+                }
+                
+            }
         })
 
         const currentCommission = computed(() => {
-            if (isArrayCommission.value) {
+            if (currentGoodsConfig.value.commissionType === 'number' || currentGoodsConfig.value.commissionType === 'percent') {
+                return currentGoodsConfig.value.commission
+            } else {
                 if (isToday.value) {
                     return currentGoodsConfig.value.commission[1]
                 } else {
                     return currentGoodsConfig.value.commission[0]
                 }
-            } else {
-                return currentGoodsConfig.value.commission
             }
         })
 
@@ -215,6 +366,10 @@ export default {
             md5Result.value = md5(inputText.value)
         }
 
+        const clickInput = (e) => {
+            e.preventDefault()
+        }
+
         const changeType = () => {
             setGoodsPricePrev(currentGoodsConfig.value.defaultPrice)
             setGoodsPriceNext(currentGoodsConfig.value.defaultPrice)
@@ -222,6 +377,7 @@ export default {
 
         return {
             lot,
+            saleOrBuy,
             pricePrev,
             priceNext,
             md5Result,
@@ -240,6 +396,7 @@ export default {
             tableData,
             searchHandle,
             changeType,
+            clickInput,
         }
     },
 }
@@ -269,10 +426,11 @@ export default {
     margin-bottom: 36px;
 }
 .line-wrap {
+    height: 27px;
     line-height: 16px;
 }
-.margin-line-wrap {
-    margin-bottom: 2px;
+.line-wrap {
+    height: 27px;
     line-height: 16px;
 }
 .tips-text {
@@ -305,6 +463,9 @@ export default {
     background: hsla(0, 0%, 100%, .5);
     margin: 0 2px;
 }
+.minus-operator {
+    padding: 0 2px;
+}
 .punctuation {
     color: #999;
     margin: 0 2px;
@@ -316,6 +477,20 @@ export default {
 }
 .result-number {
     color: #690;
+}
+.number-tips {
+    border-radius: 4px 0 0 4px;
+    background: #f5f7fa;
+    border: 1px solid #dcdfe6;
+    border-right: none;
+    line-height: 22px;
+    display: inline-block;
+    padding: 0 6px;
+    color: #606266;
+    font-size: 12px;
+}
+.line-punctuation {
+    line-height: 27px;
 }
 </style>
 
@@ -342,5 +517,17 @@ export default {
 }
 .search-input-wrap .el-input__suffix {
     height: 28px;
+}
+.checkbox-tool {
+    height: 14px;
+    margin-top: 12px;
+}
+.number-tips-input .el-input-number__decrease {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+.number-tips-input .el-input__inner {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
 }
 </style>

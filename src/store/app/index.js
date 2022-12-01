@@ -12,12 +12,26 @@ export const goodsConfig = {
         num: 5,
         commission: 24,
         defaultPrice: 8000,
+        commissionType: 'number',
     },
     MA: {
         num: 10,
         commission: [16, 32],
         defaultPrice: 2500,
-    }
+        commissionType: 'array',
+    },
+    bu: {
+        num: 10,
+        commission: [0.0004, 0.0004],
+        defaultPrice: 3600,
+        commissionType: 'percent',
+    },
+    pb: {
+        num: 5,
+        commission: [[0.00016, 0.00016], [0.00016, 0]],
+        defaultPrice: 15700,
+        commissionType: 'array-percent',
+    },
 }
 
 const app = {
