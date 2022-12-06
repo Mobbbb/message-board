@@ -21,6 +21,16 @@ export const incomeRoute = {
     component: () => import('@/single-page/income/index.vue'),
 }
 
+export const orderRoute = {
+    path: '/order',
+    name: 'order',
+    meta: {
+        level: 0,
+        name: '交易',
+    },
+    component: () => import('@/single-page/order/index.vue'),
+}
+
 export const toolsRoute = {
     path: '/tools',
     name: 'tools',
@@ -52,6 +62,7 @@ export const notFoundRoute = {
 export const routes = [
     homeRoute,
     incomeRoute,
+    orderRoute,
     toolsRoute,
     detailRoute,
     notFoundRoute,
