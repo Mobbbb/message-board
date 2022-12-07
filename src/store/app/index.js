@@ -50,6 +50,7 @@ const app = {
             activeNavIndex: '/',
 
             activeTabName: 'day',
+            activeOrderTab: 'add',
 
             goods: {
                 type: 'eb',
@@ -75,6 +76,9 @@ const app = {
     mutations: {
         setActiveTabName(state, value) {
             state.activeTabName = value
+        },
+        setActiveOrderTab(state, value) {
+            state.activeOrderTab = value
         },
         setGoodsType(state, value) {
             state.goods.type = value

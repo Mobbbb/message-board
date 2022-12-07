@@ -26,13 +26,13 @@
                     </el-table>
                     <div class="table-input-wrap" :style="{ width: `${wrapWidth}px` }">
                         <div :style="{ width: `${dateWidth}px`, height: '32px' }">
-                            <el-date-picker v-model="date" type="date" placeholder="日期" :editable="false" :clearable="false" style="width: 80px;" />
+                            <el-date-picker class="table-picker" v-model="date" type="date" placeholder="日期" :editable="false" :clearable="false" style="width: 80px;" />
                         </div>
                         <div :style="{ width: `${numWidth}px`, height: '32px' }">
-                            <el-input-number v-model="num" class="table-input-number" :controls="false" style="width: 50px;" />
+                            <el-input-number v-model="num" class="table-picker table-input-number" :controls="false" style="width: 50px;" />
                         </div>
                         <div :style="{ width: `${nameWidth}px`, height: '32px' }">
-                            <el-select v-model="name" multiple placeholder="角色" style="width: 120px;">
+                            <el-select class="table-picker" v-model="name" multiple placeholder="角色" style="width: 120px;">
                                 <el-option label="金" value="j"></el-option>
                                 <el-option label="银" value="y"></el-option>
                                 <el-option label="其他" value="other"></el-option>
@@ -349,14 +349,14 @@ export default {
 .chart-tab .el-tab-pane {
     height: 100%!important;
 }
-.el-input--suffix .el-input__inner {
+.table-picker.el-input--suffix .el-input__inner {
     padding-right: 2px!important;
     padding-left: 4px!important;
 }
-.el-tag--default .el-tag__close {
+.table-picker .el-tag--default .el-tag__close {
     margin-left: 0!important;
 }
-.el-tag--default {
+.table-picker .el-tag--default {
     padding: 4px!important;
 }
 .incomeTalbe .el-table__body-wrapper {
@@ -369,7 +369,7 @@ export default {
     padding-left: 0!important;
     padding-right: 0!important;
 }
-.el-input__prefix {
+.table-picker .el-input__prefix {
     display: none!important;
 }
 .incomeTalbe .el-table__inner-wrapper {

@@ -74,3 +74,10 @@ export const fetchDeleteOrder = (id) => {
         params: { id },
     })
 }
+
+export const fetchFutureConfigInfo = () => {
+    return axios.request({
+        url: prefixApi + '/other/futureConfigInfo',
+        method: 'get',
+    })
+}
