@@ -34,6 +34,22 @@
                         <el-button type="danger" @click="submitHandle(1, 0)">平空</el-button>
                     </div>
                 </div>
+                
+                <el-table class="order-talbe" :data="tableData" :row-class-name="tableRowClassName">
+                    <el-table-column prop="name" label="合约" width="90" fixed="left" />
+                    <el-table-column prop="buyOrSale" label="多/空">
+                        <template #default="scope">
+                            <span>{{scope.row.buyOrSale ? '多' : '空'}}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column prop="price" label="成交价" />
+                    <el-table-column prop="hands" label="手数" />
+                    <el-table-column prop="openOrClose" label="开/平">
+                        <template #default="scope">
+                            <span>{{scope.row.openOrClose ? '开' : '平'}}</span>
+                        </template>
+                    </el-table-column>
+                </el-table>
             </el-tab-pane>
             <el-tab-pane label="交易记录" name="table">
                 <el-table class="order-talbe" :data="tableData" :row-class-name="tableRowClassName">
@@ -51,12 +67,12 @@
                         </template>
                     </el-table-column>
                     <el-table-column prop="date" label="交易时间" width="180" />
-                    <el-table-column prop="closeStatus" label="状态">
+                    <el-table-column prop="closeHands" label="状态">
                         <template #default="scope">
                             <span v-if="!scope.row.openOrClose">--</span>
-                            <span v-else-if="scope.row.closeStatus === 1">全平</span>
-                            <span v-else-if="scope.row.closeStatus === 2">部分平</span>
-                            <span v-else>未平</span>
+                            <span v-else-if="scope.row.closeHands === 0">未平</span>
+                            <span v-else-if="scope.row.closeHands === scope.row.hands">全平</span>
+                            <span v-else>已平{{scope.row.closeHands}}手</span>
                         </template>
                     </el-table-column>
                     <el-table-column prop="commission" label="手续费" width="70" fixed="right" align="center" />
