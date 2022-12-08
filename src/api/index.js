@@ -81,3 +81,10 @@ export const fetchFutureConfigInfo = () => {
         method: 'get',
     })
 }
+
+export const fetchOpeningOrderInfo = () => {
+    return axios.request({
+        url: prefixApi + '/other/openingOrderInfo',
+        method: 'get',
+    })
+}
