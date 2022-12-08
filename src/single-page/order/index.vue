@@ -127,8 +127,6 @@ export default {
         const tableData = ref([])
         const openingTableData = ref([])
         const commissionList = ref([])
-        const futuresList = ref([])
-        const futureConfigInfo = ref([])
         const ruleFormRef = ref()
         const formData = reactive({
             date,
@@ -146,6 +144,10 @@ export default {
             price: [{ required: true, message: '请输入成交价', trigger: 'change' }],
             commissionId: [{ required: true, message: '请选择手续费配置', trigger: 'change' }],
         })
+
+        const futureConfigInfo = computed(() => store.state.app.futureConfigInfo)
+        const futuresList = computed(() => store.getters['app/futuresList'])
+        const getFutureConfigInfo = () => store.dispatch('app/getFutureConfigInfo')
 
         const activeName = computed({
             get() {
@@ -272,11 +274,6 @@ export default {
             openingTableData.value = formatArr
         }
 
-        const getFutureConfigInfo = async () => {
-            const res = await fetchFutureConfigInfo()
-            futureConfigInfo.value = res.data || []
-        }
-
         const changeOrderName = () => { // 切换合约
             // 更新手续费列表
             commissionList.value = futureConfigInfo.value.filter(item => formData.name.indexOf(item.name) > -1)
@@ -289,7 +286,6 @@ export default {
         onMounted(async () => {
             getOpeningTableData()
             await getFutureConfigInfo()
-            futuresList.value = [...new Set(futureConfigInfo.value.map(item => item.name))] // 设置合约列表
             // 设置默认选中的合约
             const defaultOrderName = localStorage.getItem('default-order-name')
             if (defaultOrderName) {

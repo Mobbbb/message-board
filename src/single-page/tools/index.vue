@@ -22,10 +22,13 @@
                         inactive-text="公式"
                         class="result-btn" />
             <span class="tips-text" v-if="isInPc">(按回车快速切换)</span>
-            <el-radio-group v-model="currentGoodsType" @change="changeType" style="display: block;margin-bottom: 4px;">
-                <el-radio :label="key" v-for="(item, key) in goodsConfig" :key="key" style="height: 26px;">{{key}}</el-radio>
+            <el-radio-group v-model="currentGoodsType" style="display: block;margin-bottom: 4px;">
+                <el-radio :label="item" v-for="item in futuresList" :key="item" style="height: 26px;">{{item}}</el-radio>
             </el-radio-group>
-            <template v-if="currentGoodsConfig.commissionType === 'percent' || currentGoodsConfig.commissionType === 'array-percent'">
+            <el-radio-group v-model="currentCommissionType" style="display: block;margin-bottom: 8px;">
+                <el-radio :label="item.type" v-for="item in commissionList" :key="item.type" style="height: 26px;">{{numMap[item.type] + '倍基础手续费'}}</el-radio>
+            </el-radio-group>
+            <template v-if="currentGoodsConfig.openCommissionType === 'percent'">
                 <div v-show="showNumber">
                     <div class="line-wrap">
                         <el-input-number @click="clickInput" type="number" v-model="lot" size="small" style="width: 100px;margin-right: 3px;" />
@@ -46,7 +49,7 @@
                         <span class="punctuation">(</span>
                         <span class="name-span" :class="spanNumberClass">1</span>
                         <span class="operator">+</span> 
-                        <span class="name-span" :class="spanNumberClass">{{currentCommission[0]}}</span>
+                        <span class="name-span" :class="spanNumberClass">{{openCommission}}</span>
                         <span class="punctuation">)</span>
                     </div>
                     <div class="line-wrap" style="padding-left: 12px;">
@@ -61,8 +64,8 @@
                         <span class="punctuation">(</span>
                         <span class="name-span" :class="spanNumberClass">1</span>
                         <span class="operator minus-operator">-</span>
-                        <span class="name-span" :class="spanNumberClass" v-if="saleOrBuy">{{currentCommission[1]}}</span>
-                        <span class="name-span" :class="spanNumberClass" v-else>{{currentCommission[0]}}</span>
+                        <span class="name-span" :class="spanNumberClass" v-if="saleOrBuy">{{closeCommission}}</span>
+                        <span class="name-span" :class="spanNumberClass" v-else>{{openCommission}}</span>
                         <span class="punctuation">)</span>
                         <span class="operator" v-if="!saleOrBuy">-</span>
                     </div>
@@ -75,7 +78,7 @@
                         <span class="punctuation">(</span>
                         <span class="name-span" :class="spanNumberClass">1</span>
                         <span class="operator">+</span> 
-                        <span class="name-span" :class="spanNumberClass">{{currentCommission[1]}}</span>
+                        <span class="name-span" :class="spanNumberClass">{{closeCommission}}</span>
                         <span class="punctuation">)</span>
                     </div>
                     <div class="line-wrap">
@@ -89,7 +92,7 @@
                         <el-radio :label="1" style="height: 26px;">多</el-radio>
                         <el-radio :label="0" style="height: 26px;">空</el-radio>
                     </el-radio-group>
-                    <el-checkbox class="checkbox-tool" v-model="isToday" label="日内平今仓" v-if="isArrayCommission" />
+                    <el-checkbox class="checkbox-tool" v-model="isToday" label="日内平今仓" v-if="showToday" />
                 </div>
                 <div v-show="!showNumber">
                     <div class="line-wrap">
@@ -148,7 +151,7 @@
                         <el-radio :label="1" style="height: 26px;">多</el-radio>
                         <el-radio :label="0" style="height: 26px;">空</el-radio>
                     </el-radio-group>
-                    <el-checkbox class="checkbox-tool" v-model="isToday" label="日内平今仓" v-if="isArrayCommission" />
+                    <el-checkbox class="checkbox-tool" v-model="isToday" label="日内平今仓" v-if="showToday" />
                 </div>
             </template>
             <template v-else>
@@ -167,14 +170,14 @@
                         <el-input-number @click="clickInput" type="number" v-model="priceNext" size="small" style="width: 94px;margin: 0 3px;" />
                         <span class="punctuation">)</span>
                         <span class="operator">-</span>
-                        <span class="name-span" :class="spanNumberClass">{{currentCommission}}</span>
+                        <span class="name-span" :class="spanNumberClass">{{openCommission + closeCommission}}</span>
                         <span class="punctuation">]</span> 
                     </div>
                     <div class="line-wrap">
                         <span class="operator">=</span>
                         <span class="name-span" :class="spanNumberClass">{{goodsResult}}</span>
                     </div>
-                    <el-checkbox class="checkbox-tool" v-model="isToday" label="日内平今仓" v-if="isArrayCommission" />
+                    <el-checkbox class="checkbox-tool" v-model="isToday" label="日内平今仓" v-if="showToday" />
                 </div>
                 <div v-show="!showNumber">
                     <div class="line-wrap">
@@ -212,7 +215,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useStore } from 'vuex'
 import config, { PC } from '@/config'
 import md5 from '@/libs/md5'
-import { goodsConfig } from '@/store/app'
+import { numMap } from '../order/index.js'
 
 export default {
     name: 'home',
@@ -244,10 +247,20 @@ export default {
         const setGoodsPricePrev = (value) => store.commit('app/setGoodsPricePrev', value)
         const setGoodsPriceNext = (value) => store.commit('app/setGoodsPriceNext', value)
         const setGoodsType = (value) => store.commit('app/setGoodsType', value)
+        const setCommissionType = (value) => store.commit('app/setCommissionType', value)
+        const getFutureConfigInfo = () => store.dispatch('app/getFutureConfigInfo')
 
         const isInPc = computed(() => config.device === PC)
         const spanNumberClass = computed(() => showNumber.value ? 'result-number' : '')
         const goods = computed(() => store.state.app.goods)
+        const futureConfigInfo = computed(() => store.state.app.futureConfigInfo)
+        const futuresList = computed(() => store.getters['app/futuresList'])
+
+        const commissionList = computed(() => {
+            const filterRes = futureConfigInfo.value.filter(item => item.name === currentGoodsType.value)
+            filterRes.sort((a, b) => a.type - b.type)
+            return filterRes
+        })
 
         const lot = computed({
             get() {
@@ -285,6 +298,15 @@ export default {
             },
         })
 
+        const currentCommissionType = computed({
+            get() {
+                return goods.value.commissionType
+            },
+            set(value) {
+                setCommissionType(value)
+            },
+        })
+
         const tableData = computed(() => {
             const obj = {}
             columns.forEach((item, index) => {
@@ -294,55 +316,71 @@ export default {
         })
 
         const currentGoodsConfig = computed(() => {
-            return goodsConfig[currentGoodsType.value]
-        })
-
-        const isArrayCommission = computed(() => {
-            return currentGoodsConfig.value.commissionType.indexOf('array') > -1
+            let obj = {}
+            commissionList.value.forEach(item => {
+                if (currentCommissionType.value === item.type) {
+                    obj = item
+                }
+            })
+            return obj
         })
         
         const goodsResult = computed(() => {
-            if (currentGoodsConfig.value.commissionType === 'number' || currentGoodsConfig.value.commissionType === 'array') {
+            const { openCommissionType, num } = currentGoodsConfig.value
+            if (openCommissionType === 'number') {
                 return goods.value.lot * 
-                    (
-                        currentGoodsConfig.value.num * 
-                        (goods.value.pricePrev - goods.value.priceNext) - currentCommission.value
-                    )
+                    (num * (goods.value.pricePrev - goods.value.priceNext) - (openCommission.value + closeCommission.value))
             } else {
                 if (saleOrBuy.value) { // 多
-                    return (goods.value.lot * currentGoodsConfig.value.num *
+                    return (goods.value.lot * num *
                         (
                             goods.value.priceNext - // 平仓价
                             goods.value.pricePrev - // 开仓价 
-                            goods.value.priceNext * currentCommission.value[1] - // 平仓价手续费
-                            goods.value.pricePrev * currentCommission.value[0] // 开仓价手续费
+                            goods.value.priceNext * closeCommission.value - // 平仓价手续费
+                            goods.value.pricePrev * openCommission.value // 开仓价手续费
                         )).toFixed(1)
                 } else { // 空
-                    return (goods.value.lot * currentGoodsConfig.value.num *
+                    return (goods.value.lot * num *
                         (
                             goods.value.pricePrev - // 开仓价 
                             goods.value.priceNext - // 平仓价
-                            goods.value.priceNext * currentCommission.value[1] - // 平仓价手续费
-                            goods.value.pricePrev * currentCommission.value[0] // 开仓价手续费
+                            goods.value.priceNext * closeCommission.value - // 平仓价手续费
+                            goods.value.pricePrev * openCommission.value // 开仓价手续费
                         )).toFixed(1)
                 }
                 
             }
         })
 
-        const currentCommission = computed(() => {
-            if (currentGoodsConfig.value.commissionType === 'number' || currentGoodsConfig.value.commissionType === 'percent') {
-                return currentGoodsConfig.value.commission
-            } else {
-                if (isToday.value) {
-                    return currentGoodsConfig.value.commission[1]
-                } else {
-                    return currentGoodsConfig.value.commission[0]
-                }
-            }
+        const showToday = computed(() => {
+            const { closeCommission, dayCloseCommission } = currentGoodsConfig.value
+
+            return closeCommission !== dayCloseCommission
         })
 
-        onMounted(() => {
+        const openCommission = computed(() => {
+            const { dayOpenCommission } = currentGoodsConfig.value
+            let { openCommission: commission } = currentGoodsConfig.value
+
+            if (isToday.value) {
+                commission = dayOpenCommission
+            }
+
+            return commission
+        })
+
+        const closeCommission = computed(() => {
+            const { dayCloseCommission } = currentGoodsConfig.value
+            let { closeCommission: commission } = currentGoodsConfig.value
+
+            if (isToday.value) {
+                commission = dayCloseCommission
+            }
+
+            return commission
+        })
+
+        onMounted(async () => {
             fetchInsertLogHandle()
             if (isInPc.value) {
                 document.addEventListener('keydown', (e) => {
@@ -360,6 +398,12 @@ export default {
                     }
                 })
             } catch (error) {}
+
+            await getFutureConfigInfo()
+            if (futureConfigInfo.value.length) {
+                setGoodsType(futureConfigInfo.value[0].name)
+                setCommissionType(futureConfigInfo.value[0].type)
+            }
         })
 
         const searchHandle = () => {
@@ -370,23 +414,19 @@ export default {
             e.preventDefault()
         }
 
-        const changeType = () => {
-            setGoodsPricePrev(currentGoodsConfig.value.defaultPrice)
-            setGoodsPriceNext(currentGoodsConfig.value.defaultPrice)
-        }
-
         return {
+            numMap,
             lot,
             saleOrBuy,
             pricePrev,
             priceNext,
             md5Result,
             inputText,
-            goodsConfig,
             currentGoodsType,
             currentGoodsConfig,
-            currentCommission,
-            isArrayCommission,
+            showToday,
+            openCommission,
+            closeCommission,
             isToday,
             goodsResult,
             showNumber,
@@ -394,8 +434,10 @@ export default {
             spanNumberClass,
             columns,
             tableData,
+            futuresList,
+            commissionList,
+            currentCommissionType,
             searchHandle,
-            changeType,
             clickInput,
         }
     },
