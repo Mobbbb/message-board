@@ -301,7 +301,9 @@ export default {
             // 设置手续费列表
             commissionList.value = futureConfigInfo.value.filter(item => formData.name.indexOf(item.name) > -1)
             commissionList.value.sort((a, b) => a.type - b.type)
-            formData.commissionId = commissionList.value[0].id // 设置默认选中的手续费
+            if (commissionList.value.length) {
+                formData.commissionId = commissionList.value[0].id // 设置默认选中的手续费
+            }
         })
 
         return {
