@@ -109,7 +109,7 @@ export default {
 .search-input-wrap {
     position: absolute;
     display: flex;
-    width: 185px;
+    width: 140px;
     height: 32px;
     line-height: 28px;
     right: 16px;

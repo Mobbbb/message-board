@@ -245,8 +245,9 @@ export default {
                 'other': '其他',
             }
             const res = await fetchIncomeInfo()
-            res.data.sort((a, b) => Date.parse(new Date(b.date)) - Date.parse(new Date(a.date)))
-            res.data.forEach(item => {
+            const data = res.data || []
+            data.sort((a, b) => Date.parse(new Date(b.date)) - Date.parse(new Date(a.date)))
+            data.forEach(item => {
                 if (!Array.isArray(item.name)) {
                     item.name = item.name.split(',')
                 }
@@ -257,7 +258,7 @@ export default {
                 item.showName = nameArr.join('、')
             })
                 
-            tableData.value = res.data || []
+            tableData.value = data
         }
 
         const submitHandle = async () => {

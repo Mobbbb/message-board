@@ -52,10 +52,11 @@ export const fetchDeleteIncome = (id) => {
     })
 }
 
-export const fetchOrderInfo = () => {
+export const fetchOrderInfo = (params) => {
     return axios.request({
         url: prefixApi + '/other/orderInfo',
-        method: 'get',
+        method: 'post',
+        data: params,
     })
 }
 

@@ -88,10 +88,6 @@
                         <span class="operator">=</span>
                         <span class="name-span" :class="spanNumberClass">{{goodsResult}}</span>
                     </div>
-                    <el-radio-group v-model="saleOrBuy" style="display: block;margin-top: 6px;">
-                        <el-radio :label="1" style="height: 26px;">多</el-radio>
-                        <el-radio :label="0" style="height: 26px;">空</el-radio>
-                    </el-radio-group>
                     <el-checkbox class="checkbox-tool" v-model="isToday" label="日内平今仓" v-if="showToday" />
                 </div>
                 <div v-show="!showNumber">
@@ -147,10 +143,6 @@
                         <span class="operator">=</span>
                         <span class="name-span" :class="spanNumberClass">收益</span>
                     </div>
-                    <el-radio-group v-model="saleOrBuy" style="display: block;">
-                        <el-radio :label="1" style="height: 26px;">多</el-radio>
-                        <el-radio :label="0" style="height: 26px;">空</el-radio>
-                    </el-radio-group>
                     <el-checkbox class="checkbox-tool" v-model="isToday" label="日内平今仓" v-if="showToday" />
                 </div>
             </template>
@@ -161,17 +153,33 @@
                         <span class="operator">x</span>
                     </div>
                     <div class="line-wrap">
-                        <span class="punctuation line-punctuation">[</span>
+                        <span class="punctuation line-punctuation">(</span>
+                    </div>
+                    <div class="line-wrap" style="padding-left: 12px;">
                         <span class="name-span" :class="spanNumberClass">{{currentGoodsConfig.num}}</span>
                         <span class="operator">*</span>
-                        <span class="punctuation">(</span>
-                        <el-input-number @click="clickInput" type="number" v-model="pricePrev" size="small" style="width: 94px;margin: 0 3px;" />
-                        <span class="operator">-</span> 
-                        <el-input-number @click="clickInput" type="number" v-model="priceNext" size="small" style="width: 94px;margin: 0 3px;" />
-                        <span class="punctuation">)</span>
+                        <div style="display: inline-flex;">
+                            <span class="number-tips" v-if="saleOrBuy">平仓价</span>
+                            <span class="number-tips" v-else>开仓价</span>
+                            <el-input-number @click="clickInput" v-if="saleOrBuy" class="number-tips-input" type="number" v-model="priceNext" size="small" style="width: 100px;margin-right: 3px;" />
+                            <el-input-number @click="clickInput" v-else type="number" class="number-tips-input" v-model="pricePrev" size="small" style="width: 100px;margin-right: 3px;" />
+                        </div>
+                        <span class="operator">-</span>
+                    </div>
+                    <div class="line-wrap" style="padding-left: 12px;">
+                        <span class="name-span" :class="spanNumberClass">{{currentGoodsConfig.num}}</span>
+                        <span class="operator">*</span>
+                        <div style="display: inline-flex;">
+                            <span class="number-tips" v-if="saleOrBuy">开仓价</span>
+                            <span class="number-tips" v-else>平仓价</span>
+                            <el-input-number @click="clickInput" v-if="saleOrBuy" type="number" class="number-tips-input" v-model="pricePrev" size="small" style="width: 100px;margin-right: 3px;" />
+                            <el-input-number @click="clickInput" v-else class="number-tips-input" type="number" v-model="priceNext" size="small" style="width: 100px;margin-right: 3px;" />
+                        </div>
                         <span class="operator">-</span>
                         <span class="name-span" :class="spanNumberClass">{{openCommission + closeCommission}}</span>
-                        <span class="punctuation">]</span> 
+                    </div>
+                    <div class="line-wrap">
+                        <span class="punctuation">)</span> 
                     </div>
                     <div class="line-wrap">
                         <span class="operator">=</span>
@@ -185,17 +193,23 @@
                         <span class="operator">x</span>
                     </div>
                     <div class="line-wrap">
-                        <span class="punctuation line-punctuation">[</span>
+                        <span class="punctuation line-punctuation">(</span>
+                    </div>
+                    <div class="line-wrap" style="padding-left: 12px;">
                         <span class="name-span" :class="spanNumberClass">交易单位</span>
                         <span class="operator">*</span>
-                        <span class="punctuation">(</span>
                         <span class="name-span" :class="spanNumberClass">卖出价</span>
                         <span class="operator">-</span>
+                    </div>
+                    <div class="line-wrap" style="padding-left: 12px;">
+                        <span class="name-span" :class="spanNumberClass">交易单位</span>
+                        <span class="operator">*</span>
                         <span class="name-span" :class="spanNumberClass">买入价</span>
-                        <span class="punctuation">)</span>
                         <span class="operator">-</span>
                         <span class="name-span" :class="spanNumberClass">手续费</span>
-                        <span class="punctuation">]</span> 
+                    </div>
+                    <div class="line-wrap">
+                        <span class="punctuation">)</span> 
                     </div>
                     <div class="line-wrap">
                         <span class="operator">=</span>
@@ -203,6 +217,10 @@
                     </div>
                 </div>
             </template>
+            <el-radio-group v-model="saleOrBuy" style="display: block;margin-top: 6px;">
+                <el-radio :label="1" style="height: 26px;">平多</el-radio>
+                <el-radio :label="0" style="height: 26px;">平空</el-radio>
+            </el-radio-group>
             <el-table border :data="tableData" style="margin-top: 12px;">
                 <el-table-column :prop="String(index)" :label="`占比(${column.label})`" :key="index" v-for="(column, index) in columns" />
             </el-table>
@@ -326,30 +344,34 @@ export default {
         })
         
         const goodsResult = computed(() => {
-            const { openCommissionType, num } = currentGoodsConfig.value
+            const { openCommissionType, closeCommissionType, num } = currentGoodsConfig.value
+
+            let totalOpenCommission = 0
+            let totalCloseCommission = 0
+
+            // 计算开仓总手续费
             if (openCommissionType === 'number') {
-                return goods.value.lot * 
-                    (num * (goods.value.pricePrev - goods.value.priceNext) - (openCommission.value + closeCommission.value))
+                totalOpenCommission += openCommission.value * goods.value.lot
             } else {
-                if (saleOrBuy.value) { // 多
-                    return (goods.value.lot * num *
-                        (
-                            goods.value.priceNext - // 平仓价
-                            goods.value.pricePrev - // 开仓价 
-                            goods.value.priceNext * closeCommission.value - // 平仓价手续费
-                            goods.value.pricePrev * openCommission.value // 开仓价手续费
-                        )).toFixed(1)
-                } else { // 空
-                    return (goods.value.lot * num *
-                        (
-                            goods.value.pricePrev - // 开仓价 
-                            goods.value.priceNext - // 平仓价
-                            goods.value.priceNext * closeCommission.value - // 平仓价手续费
-                            goods.value.pricePrev * openCommission.value // 开仓价手续费
-                        )).toFixed(1)
-                }
-                
+                totalOpenCommission += openCommission.value * goods.value.pricePrev * num * goods.value.lot
             }
+
+            // 计算平仓总手续费
+            if (closeCommissionType === 'number') {
+                totalCloseCommission += closeCommission.value * goods.value.lot
+            } else {
+                totalCloseCommission += closeCommission.value * goods.value.priceNext * num * goods.value.lot
+            }
+
+            let deltaPrice = 0
+            if (saleOrBuy.value) { // 平多
+                // 平仓价 - 开仓价
+                deltaPrice = goods.value.priceNext - goods.value.pricePrev
+            } else {
+                deltaPrice = goods.value.pricePrev - goods.value.priceNext
+            }
+
+            return goods.value.lot * num * deltaPrice - totalOpenCommission - totalCloseCommission
         })
 
         const showToday = computed(() => {

@@ -6,7 +6,7 @@
                     <el-form :model="formData" label-width="95px" label-position="left"
                         ref="ruleFormRef"
                         :rules="rules"
-                        style="width: 400px;padding-left: 24px;">
+                        style="width: 325px;padding-left: 24px;">
                         <el-form-item label="交易日期" prop="date">
                             <el-date-picker v-model="formData.date" type="datetime" placeholder="请选择日期" :editable="false" :clearable="false" />
                         </el-form-item>
@@ -34,7 +34,7 @@
                         <el-button type="primary" :disabled="!buySaleListNum.saleListNum" @click="submitHandle(1, 0)">平空</el-button>
                     </div>
                 </div>
-                <el-table class="opening-order-talbe" :data="openingTableData" border>
+                <el-table class="opening-order-table" :data="openingTableData" border>
                     <el-table-column prop="name" label="合约" width="90" fixed="left" />
                     <el-table-column prop="buyOrSale" label="多/空">
                         <template #default="scope">
@@ -45,13 +45,48 @@
                     </el-table-column>
                     <el-table-column prop="price" label="开仓均价" />
                     <el-table-column prop="hands" label="手数" />
-                    <el-table-column prop="commission" label="开仓总手续费" />
+                    <el-table-column prop="commission" width="120" label="开仓总手续费" />
                 </el-table>
             </el-tab-pane>
-            <el-tab-pane label="交易记录" name="table">
-                <el-table class="order-talbe" :data="tableData" :row-class-name="tableRowClassName">
+            <el-tab-pane label="交易记录" name="table" ref="tableTabWrap">
+                <div class="table-search-input-wrap" ref="searchInputWrap">
+                    <div class="search-item-wrap">
+                        <span>起止日期：</span>
+                        <el-date-picker
+                            v-model="searchParams.date"
+                            type="daterange"
+                            unlink-panels
+                            range-separator="To"
+                            start-placeholder="开始日期"
+                            end-placeholder="结束日期"
+                            :clearable="false"
+                            :shortcuts="shortcuts"
+                            style="width: 260px;" />
+                    </div>
+                    <div class="search-item-wrap">
+                        <span>合约名：</span>
+                        <el-input v-model="searchParams.name" placeholder="请输入合约名" style="width: 120px;" />
+                    </div>
+                    <div class="search-item-wrap">
+                        <span>开/平：</span>
+                        <el-select v-model="searchParams.openOrClose" style="width: 120px;">
+                            <el-option label="平" :value="1"></el-option>
+                            <el-option label="开" :value="0"></el-option>
+                        </el-select>
+                    </div>
+                    <div class="search-item-wrap">
+                        <el-button type="primary" @click="searchHandle">搜索</el-button>
+                        <el-button @click="resetHandle">重置</el-button>
+                    </div>
+                </div>
+                <el-table class="order-table" 
+                    :height="orderTableHeight"
+                    show-summary 
+                    :data="tableData"
+                    :summary-method="getSummaries"
+                    :row-class-name="tableRowClassName">
                     <el-table-column prop="id" label="成交序号" width="90" fixed="left" />
-                    <el-table-column prop="name" label="合约" width="90" fixed="left" />
+                    <el-table-column prop="name" label="合约" width="90"/>
                     <el-table-column prop="buyOrSale" label="买/卖">
                         <template #default="scope">
                             <span :style="scope.row.buyOrSale ? { color: '#eb4436' } : { color: '#0e9d58' }">
@@ -77,7 +112,7 @@
                         </template>
                     </el-table-column>
                     <el-table-column prop="linkId" label="关联序号" />
-                    <el-table-column prop="profit" label="平仓盈亏" width="90" fixed="right" align="center">
+                    <el-table-column prop="profit" label="平仓盈亏" width="90" align="center">
                         <template #default="scope">
                             <div v-if="(scope.row.profit || scope.row.profit === 0)"
                                 :style="scope.row.profit > 0 ? { color: '#eb4436' } : { color: '#0e9d58' }">
@@ -95,7 +130,7 @@
                             <div v-else class="talbe-block-cell">--</div>
                         </template>
                     </el-table-column>
-                    <el-table-column label="操作" fixed="right" align="center" width="72">
+                    <el-table-column label="操作" align="center" width="72">
                         <template #default="scope">
                             <el-button link
                                 type="danger"
@@ -112,9 +147,9 @@
 </template>
 
 <script>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, nextTick } from 'vue'
 import { useStore } from 'vuex'
-import { fetchOrderInfo, fetchInsertOrder, fetchDeleteOrder, fetchFutureConfigInfo, fetchOpeningOrderInfo } from '@/api'
+import { fetchOrderInfo, fetchInsertOrder, fetchDeleteOrder, fetchOpeningOrderInfo } from '@/api'
 import { dateFormat } from '@/libs/util'
 import { numMap } from './index.js'
 import { ElMessage } from 'element-plus'
@@ -128,6 +163,9 @@ export default {
         const openingTableData = ref([])
         const commissionList = ref([])
         const ruleFormRef = ref()
+        const searchInputWrap = ref()
+        const tableTabWrap = ref()
+        const orderTableHeight = ref(0)
         const formData = reactive({
             date,
             name: '',
@@ -137,6 +175,42 @@ export default {
             price: 0,
             commissionId: '',
         })
+        const searchParams = reactive({
+            date: [],
+            name: '',
+            openOrClose: '',
+            startDate: '',
+            endDate: '',
+        })
+        const shortcuts = [
+            {
+                text: '近一周',
+                value: () => {
+                    const end = new Date()
+                    const start = new Date()
+                    start.setTime(start.getTime() - 3600 * 1000 * 24 * 7)
+                    return [start, end]
+                },
+            },
+            {
+                text: '近一月',
+                value: () => {
+                    const end = new Date()
+                    const start = new Date()
+                    start.setTime(start.getTime() - 3600 * 1000 * 24 * 30)
+                    return [start, end]
+                },
+            },
+            {
+                text: '近三月',
+                value: () => {
+                    const end = new Date()
+                    const start = new Date()
+                    start.setTime(start.getTime() - 3600 * 1000 * 24 * 90)
+                    return [start, end]
+                },
+            },
+        ]
         const rules = reactive({
             date: [{ required: true, message: '请选择日期', trigger: 'change' }],
             name: [{ required: true, message: '请选择合约', trigger: 'change' }],
@@ -206,14 +280,26 @@ export default {
         }
 
         const getTableData = async () => {
-            const res = await fetchOrderInfo()
-            res.data.sort((a, b) => Date.parse(new Date(b.date)) - Date.parse(new Date(a.date)))
-            tableData.value = res.data || []
+            if (searchParams.date[0]) {
+                searchParams.startDate = dateFormat(searchParams.date[0], 'yyyy-MM-dd hh:mm:ss')
+            }
+            if (searchParams.date[1]) {
+                searchParams.endDate = dateFormat(searchParams.date[1], 'yyyy-MM-dd hh:mm:ss')
+            }
+            const res = await fetchOrderInfo(searchParams)
+            const data = res.data || []
+            data.sort((a, b) => Date.parse(new Date(b.date)) - Date.parse(new Date(a.date)))
+            tableData.value = data || []
         }
 
         const handleClick = async () => {
             if (activeName.value === 'table') {
                 getTableData()
+                nextTick(() => {
+                    if (!orderTableHeight.value) {
+                        orderTableHeight.value = tableTabWrap.value.$el.clientHeight - searchInputWrap.value.clientHeight
+                    }
+                })
             } else {
                 getOpeningTableData()
             }
@@ -245,9 +331,10 @@ export default {
 
         const getOpeningTableData = async () => {
             const res = await fetchOpeningOrderInfo()
+            const data = res.data || []
             const formatArr = []
             const groupObj = {}
-            res.data.forEach(item => {
+            data.forEach(item => {
                 if (!groupObj[`${item.name}${item.buyOrSale}`]) {
                     groupObj[`${item.name}${item.buyOrSale}`] = []
                 }
@@ -283,8 +370,56 @@ export default {
             localStorage.setItem('default-order-name', formData.name)
         }
 
+        const getSummaries = (param) => {
+            const { columns, data } = param
+            const sums = []
+            const calcPropertyArr = ['totalProfit', 'commission', 'profit']
+            columns.forEach((column, index) => {
+                if (index === 0) {
+                    sums[index] = '合计'
+                    return
+                }
+                if (!calcPropertyArr.includes(column.property)) {
+                    sums[index] = '--'
+                    return
+                }
+                const values = data.map((item) => Number(item[column.property]))
+                if (!values.every((value) => Number.isNaN(value))) {
+                    sums[index] = values.reduce((prev, curr) => {
+                        const value = Number(curr)
+                        if (!Number.isNaN(value)) {
+                            return prev + curr
+                        } else {
+                            return prev
+                        }
+                    }, 0)
+                    sums[index] = sums[index].toFixed(2)
+                } else {
+                    sums[index] = '--'
+                }
+            })
+            return sums
+        }
+        
+        const searchHandle = () => {
+            getTableData()
+        }
+
+        const resetHandle = () => {
+            searchParams.date = []
+            searchParams.name = ''
+            searchParams.openOrClose = ''
+            searchParams.startDate = ''
+            searchParams.endDate = ''
+            getTableData()
+        }
+
         onMounted(async () => {
-            getOpeningTableData()
+            const end = new Date()
+            const start = new Date()
+            start.setTime(start.getTime() - 3600 * 1000 * 24 * 14)
+            searchParams.date = [start, end]
+            handleClick()
             await getFutureConfigInfo()
             // 设置默认选中的合约
             const defaultOrderName = localStorage.getItem('default-order-name')
@@ -311,13 +446,21 @@ export default {
             openingTableData,
             activeName,
             ruleFormRef,
+            searchInputWrap,
+            tableTabWrap,
             commissionList,
             buySaleListNum,
+            orderTableHeight,
+            shortcuts,
+            searchParams,
             tableRowClassName,
             submitHandle,
             handleClick,
             deleteRow,
             changeOrderName,
+            getSummaries,
+            searchHandle,
+            resetHandle,
         }
     },
 }
@@ -333,17 +476,29 @@ export default {
     height: 100%;
     box-sizing: border-box;
 }
-.order-talbe {
+.order-table {
     width: 100%;
-    height: 100%;
     background: white;
     font-size: 12px;
 }
-.opening-order-talbe {
+.opening-order-table {
     width: calc(100% - 48px);
     max-height: 200px;
     font-size: 12px;
     margin: 16px 24px;
+}
+.table-search-input-wrap {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    padding-left: 12px;
+    font-size: 12px;
+}
+.search-item-wrap {
+    display: flex;
+    align-items: center;
+    color: #606266;
+    margin: 0 12px 12px 0;
 }
 </style>
 
@@ -351,20 +506,14 @@ export default {
 .order-tab {
     height: 100%;
 }
-.order-tab .el-tabs__nav-scroll {
-    padding-left: 12px;
-}
 .order-tab .el-tabs__content {
     height: calc(100% - 55px);
 }
 .order-tab .el-tab-pane {
     height: 100%;
 }
-.order-tab .el-table__inner-wrapper {
-    height: 100%;
-}
-.order-tab .el-table__body-wrapper {
-    height: calc(100% - 40px);
+.order-tab .el-tabs__nav-scroll {
+    padding-left: 12px;
 }
 .order-tab .el-table .positive-row .el-table__cell {
     color: rgb(255, 36, 54);
@@ -376,5 +525,7 @@ export default {
     background: var(--el-color-info-light-9);
     color: var(--el-color-info-light-5);
 }
-
+.order-table.el-table.has-footer .el-table__inner-wrapper::before {
+    bottom: 0;
+}
 </style>
