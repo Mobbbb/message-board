@@ -35,8 +35,8 @@
                     </div>
                 </div>
                 <el-table class="opening-order-table" :data="openingTableData" border>
-                    <el-table-column prop="name" label="合约" width="90" fixed="left" />
-                    <el-table-column prop="buyOrSale" label="多/空">
+                    <el-table-column prop="name" label="合约" width="70" fixed="left" />
+                    <el-table-column prop="buyOrSale" width="60" label="多/空">
                         <template #default="scope">
                             <span :style="scope.row.buyOrSale ? { color: '#eb4436' } : { color: '#0e9d58' }">
                                 {{scope.row.buyOrSale ? '多' : '空'}}
@@ -61,6 +61,9 @@
                             end-placeholder="结束日期"
                             :clearable="false"
                             :shortcuts="shortcuts"
+                            @change="changeDateHandle"
+                            class="date-picker"
+						    popper-class="date-picker-popper"
                             style="width: 260px;" />
                     </div>
                     <div class="search-item-wrap">
@@ -70,8 +73,16 @@
                     <div class="search-item-wrap">
                         <span>开/平：</span>
                         <el-select v-model="searchParams.openOrClose" style="width: 120px;">
-                            <el-option label="平" :value="1"></el-option>
-                            <el-option label="开" :value="0"></el-option>
+                            <el-option label="平" :value="0"></el-option>
+                            <el-option label="开" :value="1"></el-option>
+                        </el-select>
+                    </div>
+                    <div class="search-item-wrap">
+                        <span>状态：</span>
+                        <el-select v-model="searchParams.status" style="width: 120px;">
+                            <el-option label="全部" :value="0"></el-option>
+                            <el-option label="已平" :value="1"></el-option>
+                            <el-option label="未平" :value="2"></el-option>
                         </el-select>
                     </div>
                     <div class="search-item-wrap">
@@ -85,9 +96,8 @@
                     :data="tableData"
                     :summary-method="getSummaries"
                     :row-class-name="tableRowClassName">
-                    <el-table-column prop="id" label="成交序号" width="90" fixed="left" />
-                    <el-table-column prop="name" label="合约" width="90"/>
-                    <el-table-column prop="buyOrSale" label="买/卖">
+                    <el-table-column prop="name" label="合约" width="70" fixed="left" />
+                    <el-table-column prop="buyOrSale" label="买/卖" width="60" align="center">
                         <template #default="scope">
                             <span :style="scope.row.buyOrSale ? { color: '#eb4436' } : { color: '#0e9d58' }">
                                 {{scope.row.buyOrSale ? '买' : '卖'}}
@@ -95,8 +105,8 @@
                         </template>
                     </el-table-column>
                     <el-table-column prop="price" label="成交价" />
-                    <el-table-column prop="commission" label="手续费" />
                     <el-table-column prop="hands" label="手数" />
+                    <el-table-column prop="commission" label="手续费" />
                     <el-table-column prop="openOrClose" label="开/平">
                         <template #default="scope">
                             <span>{{scope.row.openOrClose ? '开' : '平'}}</span>
@@ -107,10 +117,11 @@
                         <template #default="scope">
                             <span v-if="(scope.row.closeHands === null)">--</span>
                             <span v-else-if="scope.row.closeHands === 0">未平</span>
-                            <span v-else-if="scope.row.closeHands === scope.row.hands">全平</span>
+                            <span v-else-if="scope.row.closeHands === scope.row.hands">已平</span>
                             <span v-else>已平{{scope.row.closeHands}}手</span>
                         </template>
                     </el-table-column>
+                    <el-table-column prop="id" label="成交序号" width="90" />
                     <el-table-column prop="linkId" label="关联序号" />
                     <el-table-column prop="profit" label="平仓盈亏" width="90" align="center">
                         <template #default="scope">
@@ -175,12 +186,17 @@ export default {
             price: 0,
             commissionId: '',
         })
+        
+        const endDate = new Date()
+        const startDate = new Date()
+        startDate.setTime(startDate.getTime() - 3600 * 1000 * 24 * 14)
         const searchParams = reactive({
-            date: [],
+            date: [startDate, endDate],
             name: '',
             openOrClose: '',
             startDate: '',
             endDate: '',
+            status: 0,
         })
         const shortcuts = [
             {
@@ -288,7 +304,6 @@ export default {
             }
             const res = await fetchOrderInfo(searchParams)
             const data = res.data || []
-            data.sort((a, b) => Date.parse(new Date(b.date)) - Date.parse(new Date(a.date)))
             tableData.value = data || []
         }
 
@@ -362,11 +377,7 @@ export default {
         }
 
         const changeOrderName = () => { // 切换合约
-            // 更新手续费列表
-            commissionList.value = futureConfigInfo.value.filter(item => formData.name.indexOf(item.name) > -1)
-            commissionList.value.sort((a, b) => a.type - b.type)
-            // 更新默认选中的手续费
-            formData.commissionId = commissionList.value[0].id
+            setCommissionList() // 更新手续费标准
             localStorage.setItem('default-order-name', formData.name)
         }
 
@@ -405,20 +416,21 @@ export default {
             getTableData()
         }
 
+        const changeDateHandle = () => {
+            getTableData()
+        }
+
         const resetHandle = () => {
-            searchParams.date = []
             searchParams.name = ''
             searchParams.openOrClose = ''
+            searchParams.date = [startDate, endDate]
             searchParams.startDate = ''
             searchParams.endDate = ''
+            searchParams.status = 0
             getTableData()
         }
 
         onMounted(async () => {
-            const end = new Date()
-            const start = new Date()
-            start.setTime(start.getTime() - 3600 * 1000 * 24 * 14)
-            searchParams.date = [start, end]
             handleClick()
             await getFutureConfigInfo()
             // 设置默认选中的合约
@@ -429,13 +441,17 @@ export default {
                 formData.name = futuresConfigList.value[0]
             }
 
-            // 设置手续费列表
+            setCommissionList() // 设置手续费标准
+        })
+
+        // 设置手续费标准
+        const setCommissionList = () => {
             commissionList.value = futureConfigInfo.value.filter(item => formData.name.indexOf(item.name) > -1)
             commissionList.value.sort((a, b) => a.type - b.type)
             if (commissionList.value.length) {
-                formData.commissionId = commissionList.value[0].id // 设置默认选中的手续费
+                formData.commissionId = commissionList.value[0].id // 设置默认选中的手续费标准
             }
-        })
+        }
 
         return {
             numMap,
@@ -461,6 +477,7 @@ export default {
             getSummaries,
             searchHandle,
             resetHandle,
+            changeDateHandle,
         }
     },
 }
@@ -498,7 +515,7 @@ export default {
     display: flex;
     align-items: center;
     color: #606266;
-    margin: 0 12px 12px 0;
+    margin: 0 24px 12px 0;
 }
 </style>
 
