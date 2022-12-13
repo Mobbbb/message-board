@@ -33,7 +33,7 @@
 
 <script>
 import { useRouter } from 'vue-router'
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useStore } from 'vuex'
 import { ElMessage } from 'element-plus'
 
@@ -48,13 +48,8 @@ export default {
         const htmlContent = {}
         const centerDialogVisible = ref(false)
         const listData = computed(() => store.state.app.listData.filter(item => !item.hideDefault))
-        const fetchInsertLogHandle = (value) => store.dispatch('app/fetchInsertLogHandle', value)
 
         const pageSize = 20
-
-        onMounted(() => {
-            fetchInsertLogHandle(router.currentRoute.value.path)
-        })
 
         const showListData = computed(() => {
             const startNum = (currentPage.value - 1) * pageSize

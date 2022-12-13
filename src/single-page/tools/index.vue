@@ -260,7 +260,6 @@ export default {
             },
         ]
         
-        const fetchInsertLogHandle = (value) => store.dispatch('app/fetchInsertLogHandle', value)
         const setGoodsLot = (value) => store.commit('app/setGoodsLot', value)
         const setGoodsPricePrev = (value) => store.commit('app/setGoodsPricePrev', value)
         const setGoodsPriceNext = (value) => store.commit('app/setGoodsPriceNext', value)
@@ -403,7 +402,6 @@ export default {
         })
 
         onMounted(async () => {
-            fetchInsertLogHandle()
             if (isInPc.value) {
                 document.addEventListener('keydown', (e) => {
                     if (e.key === 'Enter') {

@@ -147,7 +147,7 @@ export function getDateBetween(startTime, endTime) {
     return dateArr;
 }
 
-export const dateFormat = (date, fmt) => {
+export const dateFormat = (date, fmt = 'yyyy-MM-dd') => {
     date = new Date(date)
     var a = ['日', '一', '二', '三', '四', '五', '六']
     var o = {

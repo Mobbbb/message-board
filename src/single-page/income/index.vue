@@ -7,12 +7,14 @@
             <el-tab-pane label="累计收益" name="add">
                 <div id="incomeChart2"></div>
             </el-tab-pane>
-            <el-tab-pane label="收益录入" name="table">
+            <el-tab-pane label="收益列表" name="table">
                 <div class="table-wrap">
-                    <el-table class="incomeTalbe" :data="tableData">
-                        <el-table-column prop="date" label="日期" :width="dateWidth" />
-                        <el-table-column prop="num" label="收益" :width="numWidth" />
-                        <el-table-column prop="showName" label="角色" :width="nameWidth" />
+                    <el-table :data="showListData" height="100%" style="font-size: 12px;">
+                        <el-table-column prop="date" label="日期" />
+                        <el-table-column prop="num" label="收益" />
+                        <el-table-column prop="showName" label="角色" />
+                        <el-table-column prop="username" label="账户" />
+                        <el-table-column prop="remark" label="备注" />
                         <el-table-column fixed="right" label="操作" width="60" align="center">
                             <template #default="scope">
                                 <el-button link
@@ -24,24 +26,37 @@
                             </template>
                         </el-table-column>
                     </el-table>
-                    <div class="table-input-wrap" :style="{ width: `${wrapWidth}px` }">
-                        <div :style="{ width: `${dateWidth}px`, height: '32px' }">
-                            <el-date-picker class="table-picker" v-model="date" type="date" placeholder="日期" :editable="false" :clearable="false" style="width: 80px;" />
-                        </div>
-                        <div :style="{ width: `${numWidth}px`, height: '32px' }">
-                            <el-input-number v-model="num" class="table-picker table-input-number" :controls="false" style="width: 50px;" />
-                        </div>
-                        <div :style="{ width: `${nameWidth}px`, height: '32px' }">
-                            <el-select class="table-picker" v-model="name" multiple placeholder="角色" style="width: 120px;">
-                                <el-option label="金" value="j"></el-option>
-                                <el-option label="银" value="y"></el-option>
-                                <el-option label="其他" value="other"></el-option>
-                            </el-select>
-                        </div>
-                        <div style="width: 60px;flex-shrink: 0;"></div>
-                        <div class="custom-opt">
-                            <el-button type="primary" size="small" @click="submitHandle">录入</el-button>
-                        </div>
+                </div>
+                <el-pagination small background layout="prev, jumper, next, total" 
+                    v-model:currentPage="currentPage"
+                    :page-size="pageSize"
+                    :total="tableData.length"
+                    class="income-pagination" />
+            </el-tab-pane>
+            <el-tab-pane label="收益录入" name="submit">
+                <div class="table-input-wrap">
+                    <div class="table-input-item-wrap">
+                        <span>日期：</span>
+                        <el-date-picker v-model="date" type="date" placeholder="请选择日期" :editable="false" :clearable="false" />
+                    </div>
+                    <div class="table-input-item-wrap">
+                        <span>收益：</span>
+                        <el-input-number v-model="num" :controls="false" style="width: 80px;" />
+                    </div>
+                    <div class="table-input-item-wrap">
+                        <span>角色：</span>
+                        <el-select v-model="name" multiple placeholder="请选择角色">
+                            <el-option label="金" value="j"></el-option>
+                            <el-option label="银" value="y"></el-option>
+                            <el-option label="其他" value="other"></el-option>
+                        </el-select>
+                    </div>
+                    <div class="table-input-item-wrap">
+                        <span>备注：</span>
+                        <el-input v-model="remark" type="textarea" />
+                    </div>
+                    <div style="margin: 16px 0 0 36px;">
+                        <el-button type="primary" @click="submitHandle">录入</el-button>
                     </div>
                 </div>
             </el-tab-pane>
@@ -64,15 +79,13 @@ export default {
         const tableData = ref([])
         const date = ref(new Date())
         const num = ref(0)
+        const remark = ref('')
         const name = ref(['j', 'y'])
+        const currentPage = ref(1)
 
+        const pageSize = 40
         const festivalList = ['2022-09-10', '2022-09-11', '2022-09-12', '2022-10-01', '2022-10-02', '2022-10-03', 
             '2022-10-04', '2022-10-05', '2022-10-06', '2022-10-07']
-
-        let dateWidth = ref(90)
-        let numWidth = ref(62)
-        let nameWidth = ref(120)
-        let wrapWidth = ref(0)
 
         let result1 = []
         let result2 = []
@@ -81,7 +94,8 @@ export default {
         let myChart1 = null
         let myChart2 = null
 
-        const overMediaCritical = computed(() => store.getters['app/overMediaCritical'])
+        const setActiveTabName = (value) => store.commit('app/setActiveTabName', value)
+
         const activeName = computed({
             get() {
                 return store.state.app.activeTabName
@@ -90,17 +104,13 @@ export default {
                 setActiveTabName(value)
             },
         })
-        const setActiveTabName = (value) => store.commit('app/setActiveTabName', value)
-        const fetchInsertLogHandle = (value) => store.dispatch('app/fetchInsertLogHandle', value)
+
+        const showListData = computed(() => {
+            const startNum = (currentPage.value - 1) * pageSize
+            return tableData.value.slice(startNum, startNum + pageSize)
+        })
 
         onMounted(async () => {
-            let chartTabWidth = parseInt(document.getElementsByClassName('chart-tab')[0].getBoundingClientRect().width)
-            dateWidth.value = parseInt((chartTabWidth - 60) * 90 / (90 + 62 + 120))
-            numWidth.value = parseInt((chartTabWidth - 60) * 62 / (90 + 62 + 120))
-            nameWidth.value = parseInt((chartTabWidth - 60) * 120 / (90 + 62 + 120))
-            wrapWidth.value = dateWidth.value + numWidth.value + nameWidth.value + 60
-
-            fetchInsertLogHandle()
             await getTableData()
             handleClick()
         })
@@ -119,7 +129,7 @@ export default {
         })
 
         const getDayIncome = () => {
-            setRes()
+            setChartData()
 
             nextTick(() => {
                 document.getElementById('incomeChart1').removeAttribute('_echarts_instance_')
@@ -129,7 +139,7 @@ export default {
         }
 
         const getTotalIncome = () => {
-            setRes()
+            setChartData()
 
             let data1 = []
             let data2 = []
@@ -172,7 +182,7 @@ export default {
             })
         }
 
-        const setRes = () => {
+        const setChartData = () => {
             result1 = []
             result2 = []
             result3 = []
@@ -206,11 +216,11 @@ export default {
             }
         }
 
-        const formatData = (data) => {            
+        const formatData = (data) => {
             let result = []
             if (!data.length) return []
             data.sort((a, b) => Date.parse(new Date(b.date)) - Date.parse(new Date(a.date)))
-            let dateArr = getDateBetween(data[data.length - 1].date, data[0].date)
+            let dateArr = getDateBetween(data[data.length - 1].date, dateFormat(new Date()))
 
             dateArr = dateArr.filter(item => !festivalList.includes(item))
 
@@ -269,12 +279,15 @@ export default {
             const params = {
                 date: dateFormat(new Date(date.value), 'yyyy-MM-dd'),
                 num: num.value || 0,
-                name: name.value.join(',')
+                name: name.value.join(','),
+                remark: remark.value,
             }
             await fetchInsertIncome(params)
-            name.value = ['j', 'y']
             getTableData()
+            name.value = ['j', 'y']
             num.value = 0
+            remark.value = ''
+            ElMessage.success('录入成功')
         }
 
         const deleteRow = async (data) => {
@@ -283,16 +296,15 @@ export default {
         }
 
         return {
-            numWidth,
-            dateWidth,
-            nameWidth,
-            wrapWidth,
-            overMediaCritical,
             tableData,
+            showListData,
             activeName,
             date,
             num,
             name,
+            remark,
+            pageSize,
+            currentPage,
             submitHandle,
             deleteRow,
             handleClick,
@@ -303,36 +315,39 @@ export default {
 
 <style scoped>
 .income-wrap {
-    background: #fff;
+    background: #f5f5f5;
     position: relative;
     height: 100%;
     box-sizing: border-box;
-    padding-left: 12px;
 }
-#incomeChart1, #incomeChart2, .incomeTalbe {
+#incomeChart1, #incomeChart2 {
     width: 100%;
     height: 100%;
     background: white;
-}
-.incomeTalbe {
-    font-size: 12px;
+    padding: 0 4px 0 16px;
+    box-sizing: border-box;
 }
 .table-wrap {
-    height: 100%;
-    box-sizing: border-box;
-    padding-bottom: 12px;
-    position: relative;
+    height: calc(100% - 48px);
+    margin-bottom: 12px;
+    box-shadow: 0 2px 12px 0 rgb(0 0 0 / 10%);
 }
 .table-input-wrap {
-    position: absolute;
+    background: #fff;
+    width: 100%;
+    height: 100%;
+    padding: 0 12px;
+    box-sizing: border-box;
+}
+.table-input-item-wrap {
     display: flex;
     align-items: center;
-    top: 40px;
-    z-index: 10;
-    height: 48px;
-    width: 100%;
-    border-bottom: 1px solid #ebeef5;
-    box-sizing: border-box;
+    padding-top: 16px;
+    font-size: 12px;
+    color: #606266;
+}
+.table-input-item-wrap span {
+    flex-shrink: 0;
 }
 </style>
 
@@ -340,28 +355,21 @@ export default {
 .chart-tab {
     height: 100%;
 }
+.chart-tab .el-tabs__item {
+    padding: 0 16px;
+}
 .chart-tab .el-tabs__content {
     height: calc(100% - 42px)!important;
 }
 .chart-tab .el-tabs__header {
-    padding-right: 12px;
     margin-bottom: 1px;
+    background: white;
+}
+.chart-tab .el-tabs__nav-scroll {
+    padding-left: 12px;
 }
 .chart-tab .el-tab-pane {
     height: 100%!important;
-}
-.table-picker.el-input--suffix .el-input__inner {
-    padding-right: 2px!important;
-    padding-left: 4px!important;
-}
-.table-picker .el-tag--default .el-tag__close {
-    margin-left: 0!important;
-}
-.table-picker .el-tag--default {
-    padding: 4px!important;
-}
-.incomeTalbe .el-table__body-wrapper {
-    padding-top: 48px!important;
 }
 .el-table .cell {
     padding: 0 6px!important;
@@ -370,54 +378,7 @@ export default {
     padding-left: 0!important;
     padding-right: 0!important;
 }
-.table-picker .el-input__prefix {
-    display: none!important;
-}
-.incomeTalbe .el-table__inner-wrapper {
-    height: 100%!important;
-}
-.incomeTalbe .el-table__body-wrapper {
-    height: calc(100% - 40px)!important;
-    box-sizing: border-box;
-}
-.incomeTalbe .el-table--border .el-table__inner-wrapper::after, 
-.incomeTalbe .el-table--border::after, 
-.incomeTalbe .el-table--border::before, 
-.incomeTalbe .el-table__inner-wrapper::before {
-    display: none;
-}
-.table-input-number.is-without-controls .el-input .el-input__inner {
-    padding-left: 4px;
-    padding-right: 4px;
-}
-.custom-opt {
-    width: 60px;
-    height: 48px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: absolute;
-    top: 0;
-    z-index: 10;
-    right: 0;
-    background: white;
-    border-bottom: 1px solid #ebeef5;
-    box-sizing: border-box;
-}
-.custom-opt::before {
-    left: -10px;
-    content: "";
-    position: absolute;
-    top: 0;
-    width: 10px;
-    bottom: -1px;
-    overflow-x: hidden;
-    overflow-y: hidden;
-    box-shadow: inset -10px 0 10px -10px rgb(0 0 0 / 15%);
-    touch-action: none;
-    pointer-events: none;
-}
-.table-input-wrap .el-select__tags > span {
-    margin-left: 6px!important;
+.income-pagination .el-pagination__jump {
+    margin-left: 0;
 }
 </style>

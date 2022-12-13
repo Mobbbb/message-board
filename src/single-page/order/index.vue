@@ -186,21 +186,38 @@ export default {
             price: 0,
             commissionId: '',
         })
+        const orderTalbe = ref([])
         
-        const endDate = new Date()
         const startDate = new Date()
         startDate.setTime(startDate.getTime() - 3600 * 1000 * 24 * 14)
         const searchParams = reactive({
-            date: [startDate, endDate],
+            date: [startDate, date],
             name: '',
             openOrClose: '',
             startDate: '',
             endDate: '',
             status: 0,
         })
+
+        const getMonthShortcuts = () => {
+            let year = date.getFullYear()
+            let month = date.getMonth() + 1
+            const monthShortcuts = []
+            for (let i = 0; i < 5; i++) {
+                year = month < 1 ? year - 1 : year
+                month = month < 1 ? month + 12 : month
+                monthShortcuts.push({
+                    text: month < 10 ? `${year}.${'0' + month}` : `${year}.${month}`,
+                    value: [new Date(year, month - 1, 1), new Date(year, month - 1, 1)],
+                })
+                month--
+            }
+            return monthShortcuts
+        }
+
         const shortcuts = [
             {
-                text: '近一周',
+                text: '近7天',
                 value: () => {
                     const end = new Date()
                     const start = new Date()
@@ -209,7 +226,7 @@ export default {
                 },
             },
             {
-                text: '近一月',
+                text: '近30天',
                 value: () => {
                     const end = new Date()
                     const start = new Date()
@@ -217,15 +234,7 @@ export default {
                     return [start, end]
                 },
             },
-            {
-                text: '近三月',
-                value: () => {
-                    const end = new Date()
-                    const start = new Date()
-                    start.setTime(start.getTime() - 3600 * 1000 * 24 * 90)
-                    return [start, end]
-                },
-            },
+            ...getMonthShortcuts(),
         ]
         const rules = reactive({
             date: [{ required: true, message: '请选择日期', trigger: 'change' }],
@@ -297,10 +306,10 @@ export default {
 
         const getTableData = async () => {
             if (searchParams.date[0]) {
-                searchParams.startDate = dateFormat(searchParams.date[0], 'yyyy-MM-dd hh:mm:ss')
+                searchParams.startDate = dateFormat(searchParams.date[0], 'yyyy-MM-dd') + ' 00:00:00'
             }
             if (searchParams.date[1]) {
-                searchParams.endDate = dateFormat(searchParams.date[1], 'yyyy-MM-dd hh:mm:ss')
+                searchParams.endDate = dateFormat(searchParams.date[1], 'yyyy-MM-dd') + ' 23:59:59'
             }
             const res = await fetchOrderInfo(searchParams)
             const data = res.data || []
@@ -423,7 +432,7 @@ export default {
         const resetHandle = () => {
             searchParams.name = ''
             searchParams.openOrClose = ''
-            searchParams.date = [startDate, endDate]
+            searchParams.date = [startDate, date]
             searchParams.startDate = ''
             searchParams.endDate = ''
             searchParams.status = 0
@@ -432,6 +441,46 @@ export default {
 
         onMounted(async () => {
             handleClick()
+            orderTalbe.value = document.getElementsByClassName('order-table')[0]
+            const scrollbarWrap = orderTalbe.value.getElementsByClassName('el-scrollbar__wrap')[0]
+            let startX = 0
+            let startY = 0
+            let direction = 0
+            let isDragging = false
+            let currentScrollTop = 0
+            let currentScrollLeft = 0
+            let endScrollTop = 0
+            let endScrollLeft = 0
+            scrollbarWrap.addEventListener('scroll', (e) => {
+                currentScrollTop = e.target.scrollTop
+                currentScrollLeft = e.target.scrollLeft
+            })
+            scrollbarWrap.addEventListener('touchstart', (e) => {
+                startX = e.changedTouches[0].pageX
+                startY = e.changedTouches[0].pageY
+                direction = 0
+                isDragging = false
+                scrollbarWrap.style.overflow = 'auto'
+            })
+            scrollbarWrap.addEventListener('touchmove', (e) => {
+                const firstMoveX = e.changedTouches[0].pageX - startX
+                const firstMoveY = e.changedTouches[0].pageY - startY
+                if (!isDragging) {
+                    isDragging = true
+                    direction = Math.abs(firstMoveX) - Math.abs(firstMoveY)
+                    if (direction > 0) { // 发生了x方向的移动
+                        scrollbarWrap.style.overflow = 'auto hidden'
+                        scrollbarWrap.scrollTop = endScrollTop
+                    } else {
+                        scrollbarWrap.style.overflow = 'hidden auto'
+                        scrollbarWrap.scrollLeft = endScrollLeft
+                    }
+                }
+            })
+            scrollbarWrap.addEventListener('touchend', (e) => {
+                endScrollTop = currentScrollTop
+                endScrollLeft = currentScrollLeft
+            })
             await getFutureConfigInfo()
             // 设置默认选中的合约
             const defaultOrderName = localStorage.getItem('default-order-name')
@@ -516,6 +565,9 @@ export default {
     align-items: center;
     color: #606266;
     margin: 0 24px 12px 0;
+}
+.search-item-wrap span {
+    flex-shrink: 0;
 }
 </style>
 

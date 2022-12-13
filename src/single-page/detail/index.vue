@@ -10,7 +10,7 @@
 
 <script>
 import { useRouter } from 'vue-router'
-import { computed, onMounted } from 'vue'
+import { computed } from 'vue'
 import { useStore } from 'vuex'
 
 export default {
@@ -22,11 +22,6 @@ export default {
 
         const params = computed(() => {
             return listData.value.filter(item => item.id === router.currentRoute.value.query.id)[0] || {}
-        })
-        const fetchInsertLogHandle = (value) => store.dispatch('app/fetchInsertLogHandle', value)
-
-        onMounted(() => {
-            fetchInsertLogHandle(router.currentRoute.value.path)
         })
     
         const backHandle = () => {

@@ -109,7 +109,7 @@ input {
     }
 }
 .date-picker-popper .el-picker-panel__sidebar {
-    width: 63px;
+    width: 66px;
     transition: .2s all;
 }
 .detail-picker-popper .el-picker-panel__sidebar {
