@@ -441,46 +441,6 @@ export default {
 
         onMounted(async () => {
             handleClick()
-            orderTalbe.value = document.getElementsByClassName('order-table')[0]
-            const scrollbarWrap = orderTalbe.value.getElementsByClassName('el-scrollbar__wrap')[0]
-            let startX = 0
-            let startY = 0
-            let direction = 0
-            let isDragging = false
-            let currentScrollTop = 0
-            let currentScrollLeft = 0
-            let endScrollTop = 0
-            let endScrollLeft = 0
-            scrollbarWrap.addEventListener('scroll', (e) => {
-                currentScrollTop = e.target.scrollTop
-                currentScrollLeft = e.target.scrollLeft
-            })
-            scrollbarWrap.addEventListener('touchstart', (e) => {
-                startX = e.changedTouches[0].pageX
-                startY = e.changedTouches[0].pageY
-                direction = 0
-                isDragging = false
-                scrollbarWrap.style.overflow = 'auto'
-            })
-            scrollbarWrap.addEventListener('touchmove', (e) => {
-                const firstMoveX = e.changedTouches[0].pageX - startX
-                const firstMoveY = e.changedTouches[0].pageY - startY
-                if (!isDragging) {
-                    isDragging = true
-                    direction = Math.abs(firstMoveX) - Math.abs(firstMoveY)
-                    if (direction > 0) { // 发生了x方向的移动
-                        scrollbarWrap.style.overflow = 'auto hidden'
-                        scrollbarWrap.scrollTop = endScrollTop
-                    } else {
-                        scrollbarWrap.style.overflow = 'hidden auto'
-                        scrollbarWrap.scrollLeft = endScrollLeft
-                    }
-                }
-            })
-            scrollbarWrap.addEventListener('touchend', (e) => {
-                endScrollTop = currentScrollTop
-                endScrollLeft = currentScrollLeft
-            })
             await getFutureConfigInfo()
             // 设置默认选中的合约
             const defaultOrderName = localStorage.getItem('default-order-name')
