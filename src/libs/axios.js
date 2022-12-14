@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
+import store from '@/store'
 
 axios.defaults.withCredentials = true
 
@@ -45,7 +46,10 @@ class HttpRequest {
         instance.interceptors.response.use(res => {
             this.destroy(url)
             const { data } = res
-            if (data.success === false) { // 服务器返回错误代码
+            if (data.code === 403) {
+                ElMessage.error('登录已失效，请重新登录')
+                store.dispatch('app/logoutAction')
+            } else if (data.success === false) { // 服务器返回错误代码
                 ElMessage.error(data.msg)
             }
             return data

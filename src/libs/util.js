@@ -174,3 +174,20 @@ export const genVH = (length) => {
     if (!clientHeight) return length
     return length * clientHeight / 800
 }
+
+export const getCookie = (name) => {
+    const cookieArr = document.cookie.split(';')
+    for (let i = 0; i < cookieArr.length; i++) {
+        const cookiePair = cookieArr[i].split('=')
+        if (name === cookiePair[0].trim()) {
+            return decodeURIComponent(cookiePair[1])
+        }
+    }
+    return null
+}
+
+export const delCookie = (name) => {
+    const domain = location.hostname
+    // ios中需要添加max-age=0
+    document.cookie = `${name}=${getCookie(name)};expires=${new Date(1)};max-age=0;domain=${domain};path=/`
+}

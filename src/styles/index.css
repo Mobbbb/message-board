@@ -193,3 +193,7 @@ input {
 .date-picker-popper .el-date-range-picker__header [class*=arrow-right] {
     padding-right: 0;
 }
+
+.el-message {
+    min-width: 320px!important;
+}

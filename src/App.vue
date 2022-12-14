@@ -37,8 +37,10 @@ export default {
 
         const setOriginData = (value) => store.commit('app/setOriginData', value)
         const setListData = (value) => store.commit('app/setListData', value)
+        const INIT_USER = (value) => store.dispatch('app/INIT_USER', value)
         
         onMounted(async () => {
+            INIT_USER()
             window.addEventListener('load', function() {
                 if ('serviceWorker' in navigator) {
                     navigator.serviceWorker.register('/sw.js')

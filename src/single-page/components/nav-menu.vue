@@ -22,16 +22,34 @@
                     class="search-input" />
                 <el-button size="small" type="primary" style="height: 28px;border-radius: 0 3px 3px 0;" @click="searchHandle">搜索</el-button>
             </div>
+
+            <div class="user-wrap">
+                <el-dropdown v-if="isLogin" trigger="hover">
+                    <img class="avatar-icon" :src="USER_INFO.avatar">
+                    <template #dropdown>
+                        <el-dropdown-menu>
+                            <el-dropdown-item>{{USER_INFO.userId}}</el-dropdown-item>
+                            <el-dropdown-item @click="clickLogout">退出</el-dropdown-item>
+                        </el-dropdown-menu>
+                    </template>
+                </el-dropdown>
+                <span class="login-btn" v-else @click="showLogin">登录</span>
+            </div>
         </div>
+        <LoginDrawer></LoginDrawer>
     </div>
 </template>
 
 <script>
-import { mapState} from 'vuex'
+import { mapState, mapGetters, mapMutations, mapActions } from 'vuex'
 import { routes } from '@/router'
+import LoginDrawer from './login-drawer.vue'
 
 export default {
     name: 'nav-menu',
+    components: {
+        LoginDrawer,
+    },
     data() {
         return {
             searchText: '',
@@ -43,6 +61,10 @@ export default {
             'mainWidth',
             'navHeight',
             'activeNavIndex',
+            'USER_INFO',
+        ]),
+        ...mapGetters('app', [
+            'isLogin',
         ]),
         pageNavWrapStyle() {
             return {
@@ -52,6 +74,18 @@ export default {
         },
     },
     methods: {
+        ...mapMutations('app', [
+            'setLoginDrawerStatus',
+        ]),
+        ...mapActions('app', [
+            'logoutAction',
+        ]),
+        showLogin() {
+            this.setLoginDrawerStatus(true)
+        },
+        clickLogout() {
+            this.logoutAction()
+        },
         searchHandle() {
             this.$emit('on-search', this.searchText)
         },
@@ -104,15 +138,16 @@ export default {
     transform: scale(0.8);
     padding: 4px;
     margin-right: -2px;
+    margin-top: -2px;
     white-space: nowrap;
 }
 .search-input-wrap {
     position: absolute;
     display: flex;
-    width: 140px;
+    width: 120px;
     height: 32px;
     line-height: 28px;
-    right: 16px;
+    right: 48px;
     top: 14px;
 }
 </style>
@@ -134,5 +169,8 @@ export default {
 }
 .search-input-wrap .el-input__suffix {
     height: 28px;
+}
+.search-input-wrap .el-input--suffix .el-input__inner {
+    padding: 0 11px;
 }
 </style>

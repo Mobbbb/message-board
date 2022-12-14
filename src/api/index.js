@@ -1,5 +1,20 @@
 import axios, { prefixApi } from '@/libs/api.request'
 
+export const fetchUserLogin = (uid, password) => {
+    return axios.request({
+        url: prefixApi + '/user/login',
+        method: 'post',
+        data: { uid, password },
+    })
+}
+
+export const fetchUserInfo = () => {
+    return axios.request({
+        url: prefixApi + '/user/info',
+        method: 'get',
+    })
+}
+
 export const fetchListData = () => {
     return axios.request({
         url: '/resource/message-board/message.json',

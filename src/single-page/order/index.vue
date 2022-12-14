@@ -158,7 +158,7 @@
 </template>
 
 <script>
-import { ref, reactive, computed, onMounted, nextTick } from 'vue'
+import { ref, reactive, computed, onMounted, nextTick, watch } from 'vue'
 import { useStore } from 'vuex'
 import { fetchOrderInfo, fetchInsertOrder, fetchDeleteOrder, fetchOpeningOrderInfo } from '@/api'
 import { dateFormat } from '@/libs/util'
@@ -186,7 +186,6 @@ export default {
             price: 0,
             commissionId: '',
         })
-        const orderTalbe = ref([])
         
         const startDate = new Date()
         startDate.setTime(startDate.getTime() - 3600 * 1000 * 24 * 14)
@@ -246,7 +245,9 @@ export default {
 
         const futureConfigInfo = computed(() => store.state.app.futureConfigInfo)
         const futuresList = computed(() => store.getters['app/futuresList'])
+        const isLogin = computed(() => store.getters['app/isLogin'])
         const getFutureConfigInfo = () => store.dispatch('app/getFutureConfigInfo')
+        const setLoginDrawerStatus = (status) => store.commit('app/setLoginDrawerStatus', status)
 
         const activeName = computed({
             get() {
@@ -305,6 +306,7 @@ export default {
         }
 
         const getTableData = async () => {
+            if (!isLogin.value) return
             if (searchParams.date[0]) {
                 searchParams.startDate = dateFormat(searchParams.date[0], 'yyyy-MM-dd') + ' 00:00:00'
             }
@@ -339,21 +341,26 @@ export default {
          * @param {*} openOrClose 1开，0平
          */
         const submitHandle = async (buyOrSale, openOrClose) => {
-            const valid = await ruleFormRef.value.validate().catch(e => e)
-            if (valid !== true) return
-            
-            formData.buyOrSale = buyOrSale
-            formData.openOrClose = openOrClose
-            formData.date = dateFormat(formData.date, 'yyyy-MM-dd hh:mm:ss')
-            const data = await fetchInsertOrder(formData) || {}
-            const { success } = data
-            if (success) {
-                ElMessage.success('操作成功')
-                getOpeningTableData()
+            if (!isLogin.value) {
+                setLoginDrawerStatus(true)
+            } else {    
+                const valid = await ruleFormRef.value.validate().catch(e => e)
+                if (valid !== true) return
+                
+                formData.buyOrSale = buyOrSale
+                formData.openOrClose = openOrClose
+                formData.date = dateFormat(formData.date, 'yyyy-MM-dd hh:mm:ss')
+                const data = await fetchInsertOrder(formData) || {}
+                const { success } = data
+                if (success) {
+                    ElMessage.success('操作成功')
+                    getOpeningTableData()
+                }
             }
         }
 
         const getOpeningTableData = async () => {
+            if (!isLogin.value) return
             const res = await fetchOpeningOrderInfo()
             const data = res.data || []
             const formatArr = []
@@ -438,6 +445,15 @@ export default {
             searchParams.status = 0
             getTableData()
         }
+
+        watch(isLogin, (value) => {
+            if (value) {
+                handleClick()
+            } else {
+                tableData.value = []
+                openingTableData.value = []
+            }
+        })
 
         onMounted(async () => {
             handleClick()
@@ -532,6 +548,17 @@ export default {
 </style>
 
 <style>
+.order-table .el-table__body-wrapper {
+    position: relative;
+}
+.order-table .el-table__empty-block {
+    position: absolute;
+    max-height: 60px;
+    max-width: 100px;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+}
 .order-tab {
     height: 100%;
 }

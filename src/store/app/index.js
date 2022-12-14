@@ -1,6 +1,5 @@
-import { fetchFutureConfigInfo } from '@/api'
-import { fetchInsertLog } from '@/api'
-import { getCurrentTime, getQueryVariable } from '@/libs/util'
+import { fetchFutureConfigInfo, fetchInsertLog, fetchUserInfo } from '@/api'
+import { getCurrentTime, getQueryVariable, getCookie, delCookie } from '@/libs/util'
 import router from '@/router'
 
 const app = {
@@ -21,6 +20,8 @@ const app = {
             activeTabName: 'day',
             activeOrderTab: 'add',
 
+            showLoginDrawerStatus: false,
+
             goods: {
                 type: '',
                 lot: 1,
@@ -29,6 +30,7 @@ const app = {
                 commissionType: 0,
             },
             futureConfigInfo: [],
+            USER_INFO: {}, // 用户信息
         }
     },
     getters: {
@@ -45,6 +47,9 @@ const app = {
         },
         futuresList(state) { // 合约列表
             return [...new Set(state.futureConfigInfo.map(item => item.name))]
+        },
+        isLogin(state) {
+            return !!state.USER_INFO.userId
         },
     },
     mutations: {
@@ -81,8 +86,29 @@ const app = {
         updateActiveNavIndex(state, value) {
             state.activeNavIndex = value
         },
+        setLoginDrawerStatus(state, value) {
+            state.showLoginDrawerStatus = value
+        },
+        SET_USER_INFO(state, value) {
+            state.USER_INFO = value
+        },
     },
     actions: {
+        async INIT_USER({ commit, dispatch }) {
+            const userId = getCookie('uid')
+            if (userId) { // 获取用户相关信息
+                commit('SET_USER_INFO', { userId })
+                const res = await fetchUserInfo()
+                const { data = {} } = res
+                const { uid, avatar } = data
+                if (uid) {
+                    commit('SET_USER_INFO', {
+                        userId: uid,
+                        avatar,
+                    })
+                }
+            }
+        },
         async fetchInsertLogHandle({}, routerName) {
             if (location.hostname !== 'localhost' && getQueryVariable('log') !== '0') {
                 await fetchInsertLog({
@@ -96,7 +122,12 @@ const app = {
             const res = await fetchFutureConfigInfo()
             const futureConfigInfo = res.data || []
             commit('setFutureConfigInfo', futureConfigInfo)
-        }
+        },
+        logoutAction({ commit }) {
+            commit('SET_USER_INFO', {})
+            delCookie('uid')
+            delCookie('token')
+        },
     },
 }
 
