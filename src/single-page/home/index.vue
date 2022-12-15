@@ -1,5 +1,5 @@
 <template>
-    <div class="home-wrap">     
+    <div class="home-wrap" v-loading="isLoading">     
         <div class="list-wrap">
             <div class="article-item-wrap mobile-wrap" v-for="item in showListData" :key="item.id" @click="clickHandle(item)">
                 <div class="article-title">
@@ -28,26 +28,39 @@
             :page-size="pageSize"
             :total="listData.length"
             class="home-pagination" />
+        <Refresh @on-click="refreshHandle" :showRedPoint="showRedPoint"></Refresh>
     </div>
 </template>
 
 <script>
 import { useRouter } from 'vue-router'
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useStore } from 'vuex'
 import { ElMessage } from 'element-plus'
+import { fetchFlag } from '@/api'
+import Refresh from '@/single-page/components/refresh.vue'
 
 export default {
     name: 'home',
+    components: {
+        Refresh,
+    },
     setup() {
         const router = useRouter()
         const store = new useStore()
         const password = ref('')
         const clickItem = ref({})
         const currentPage = ref(1)
+        const isLoading = ref(false)
+        const showRedPoint = ref(false)
+        const newStatus = ref(null)
         const htmlContent = {}
         const centerDialogVisible = ref(false)
         const listData = computed(() => store.state.app.listData.filter(item => !item.hideDefault))
+
+        const requestHomeList = () => store.dispatch('app/requestHomeList')
+        const setOriginData = (value) => store.commit('app/setOriginData', value)
+        const setListData = (value) => store.commit('app/setListData', value)
 
         const pageSize = 20
 
@@ -89,6 +102,55 @@ export default {
             }
         }
 
+        const refreshHandle = async () => {
+            await requestHomeListHandle()
+        }
+
+        const requestFlag = async (loading) => {
+            if (loading) isLoading.value = true
+            const { data = [] } = await fetchFlag() || {}
+            if (loading) isLoading.value = false
+            const { message_status: msgStatus } = data[0] || {}
+            const localStatus = localStorage.getItem('message-status')
+
+            newStatus.value = msgStatus
+            if (localStatus) {
+                return localStatus < msgStatus
+            } else {
+                localStorage.setItem('message-status', msgStatus)
+                return false
+            }
+        }
+
+        const requestHomeListHandle = async () => {
+            isLoading.value = true
+            const flag = await requestHomeList()
+            isLoading.value = false
+            if (flag) {
+                showRedPoint.value = false
+                localStorage.setItem('message-status', newStatus.value)
+            }
+        }
+        
+
+        onMounted(async () => {
+            let clearStatus = localStorage.getItem(`clear-status`)
+            if (!clearStatus) {
+                localStorage.clear()
+                localStorage.setItem(`clear-status`, 1)
+            }
+            let localData = localStorage.getItem(`message-list`)
+            localData = JSON.parse(localData) || {}
+            if (localData[window.version]) {
+                setOriginData(localData[window.version])
+                setListData(localData[window.version])
+                showRedPoint.value = await requestFlag(false)
+            } else {
+                showRedPoint.value = await requestFlag()
+                requestHomeListHandle()
+            }
+        })
+
         return {
             currentPage,
             pageSize,
@@ -97,9 +159,12 @@ export default {
             centerDialogVisible,
             listData,
             showListData,
+            isLoading,
+            showRedPoint,
             confirm,
             clickHandle,
             setItemRef,
+            refreshHandle,
         }
     },
 }

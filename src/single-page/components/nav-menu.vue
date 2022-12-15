@@ -6,7 +6,7 @@
                         mode="horizontal" 
                         :default-active="activeNavIndex" 
                         router>
-                <template v-for="item in routes">
+                <template v-for="item in navMenus">
                     <el-menu-item :index="item.path" v-if="item.meta.level === 0" :key="item.path">
                         {{item.meta.name}}
                     </el-menu-item>
@@ -25,7 +25,8 @@
 
             <div class="user-wrap">
                 <el-dropdown v-if="isLogin" trigger="hover">
-                    <img class="avatar-icon" :src="USER_INFO.avatar">
+                    <img class="avatar-image" :src="USER_INFO.avatar" v-if="USER_INFO.avatar">
+                    <el-icon class="avatar-icon" v-else><Avatar /></el-icon>
                     <template #dropdown>
                         <el-dropdown-menu>
                             <el-dropdown-item>{{USER_INFO.userId}}</el-dropdown-item>
@@ -42,18 +43,19 @@
 
 <script>
 import { mapState, mapGetters, mapMutations, mapActions } from 'vuex'
-import { routes } from '@/router'
+import { routes, privateRoute } from '@/router'
 import LoginDrawer from './login-drawer.vue'
+import { Avatar } from '@element-plus/icons-vue'
 
 export default {
     name: 'nav-menu',
     components: {
         LoginDrawer,
+        Avatar,
     },
     data() {
         return {
             searchText: '',
-            routes,
         }
     },
     computed: {
@@ -70,6 +72,13 @@ export default {
             return {
                 width: `${this.mainWidth.width * 100}%`,
                 height: `${this.navHeight}px`,
+            }
+        },
+        navMenus() {
+            if (this.isLogin) {
+                return [...privateRoute, ...routes]
+            } else {
+                return routes
             }
         },
     },
@@ -118,14 +127,24 @@ export default {
     padding-right: 12px;
     display: flex;
     align-items: center;
+    cursor: pointer;
 }
-.avatar-icon {
-    display: block;
+.avatar-image {
     width: 24px;
     height: 24px;
     border-radius: 50%;
     border: 1px solid #e7e7e7;
-    cursor: pointer;
+}
+.avatar-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 1px solid #e7e7e7;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #b4b6b9;
 }
 .login-btn {
     height: 24px;

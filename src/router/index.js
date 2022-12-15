@@ -60,7 +60,6 @@ export const notFoundRoute = {
 }
 
 export const routes = [
-    homeRoute,
     incomeRoute,
     orderRoute,
     toolsRoute,
@@ -68,13 +67,56 @@ export const routes = [
     notFoundRoute,
 ]
 
+export const privateRoute = [homeRoute]
+export const privateRouteName = privateRoute.map(item => item.name)
+
 const router = createRouter({
     history: createWebHashHistory(),
     routes,
 })
 
-router.afterEach((to, from, failure) => {
+export const addPrivateRoute = () => {
+    privateRoute.forEach(item => {
+        if (!router.hasRoute(item.name)) {
+            router.addRoute(item)
+            router.replace(router.currentRoute.value.fullPath)
+        }
+    })
+}
+
+export const removePrivateRoute = () => {
+    privateRoute.forEach(item => {
+        if (router.hasRoute(item.name)) {
+            router.removeRoute(item.name)
+        }
+    })
+}
+
+export const clearPrivateRoute = () => {
+    removePrivateRoute()
+    const currentName = router.currentRoute.value.name
+    if (privateRouteName.includes(currentName) || !currentName) {
+        router.push({
+            name: routes[0].name,
+        })
+    }
+}
+
+router.beforeEach((to, from, next) => {
     store.commit('app/updateActiveNavIndex', to.path)
+    if (store.getters['app/isLogin']) {
+        addPrivateRoute()
+        next()
+    } else {
+        removePrivateRoute()
+        if (privateRouteName.includes(to.name) || !to.name) {
+            next({
+                name: routes[0].name,
+            })
+        } else {
+            next()
+        }
+    }
 })
 
 export default router

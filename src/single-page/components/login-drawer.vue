@@ -22,6 +22,7 @@
 <script>
 import { mapState, mapMutations, mapActions } from 'vuex'
 import { fetchUserLogin } from '@/api/index'
+import { addPrivateRoute } from '@/router'
 import GcButton from '@/components/gc-button.vue'
 
 export default {
@@ -68,6 +69,7 @@ export default {
         },
         afterSubmit(result) {
             if (result.success) {
+                addPrivateRoute()
                 this.setLoginDrawerStatus(false)
                 this.INIT_USER()
                 this.$message.success(result.msg)

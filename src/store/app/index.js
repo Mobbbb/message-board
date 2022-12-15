@@ -1,6 +1,6 @@
-import { fetchFutureConfigInfo, fetchInsertLog, fetchUserInfo } from '@/api'
+import { fetchFutureConfigInfo, fetchInsertLog, fetchUserInfo, fetchListData } from '@/api'
 import { getCurrentTime, getQueryVariable, getCookie, delCookie } from '@/libs/util'
-import router from '@/router'
+import router, { clearPrivateRoute } from '@/router'
 
 const app = {
     namespaced: true,
@@ -94,7 +94,7 @@ const app = {
         },
     },
     actions: {
-        async INIT_USER({ commit, dispatch }) {
+        async INIT_USER({ commit }) {
             const userId = getCookie('uid')
             if (userId) { // 获取用户相关信息
                 commit('SET_USER_INFO', { userId })
@@ -127,7 +127,36 @@ const app = {
             commit('SET_USER_INFO', {})
             delCookie('uid')
             delCookie('token')
+            clearPrivateRoute()
         },
+        async requestHomeList({ commit }) {
+            let result = await fetchListData()
+            
+            if (result instanceof Array && result.length) {
+                result.sort((a, b) => b.id - a.id)
+                result.forEach((item, index) => {
+                    item.index = index
+                    if (item.htmlContent.indexOf('qzone/em') > -1) {
+                        const splitStr = item.htmlContent.split('<img src="')
+                        item.htmlContent = splitStr.join('<img src="//qzonestyle.gtimg.cn')
+                    }
+                    if (item.htmlContent.indexOf('&nbsp;<br  />') > -1) {
+                        item.htmlContent = item.htmlContent.replace('&nbsp;<br  />', '<br  />')
+                    }
+                    if (item.htmlContent.indexOf('<br  />&nbsp;') > -1) {
+                        item.htmlContent = item.htmlContent.replace('<br  />&nbsp;', '<br  />')
+                    }
+                })
+                commit('setOriginData', JSON.parse(JSON.stringify(result)))
+                commit('setListData', result)
+
+                let obj = {}
+                obj[window.version] = result
+                localStorage.setItem('message-list', JSON.stringify(obj))
+                return true
+            }
+            return false
+        }
     },
 }
 
