@@ -168,8 +168,31 @@ import { ElMessage } from 'element-plus'
 export default {
     name: 'order',
     setup() {
-        const store = new useStore()
         const date = new Date()
+        const getMonthShortcuts = () => {
+            let year = date.getFullYear()
+            let month = date.getMonth() + 1
+            const monthShortcuts = []
+            for (let i = 0; i < 5; i++) {
+                year = month < 1 ? year - 1 : year
+                month = month < 1 ? month + 12 : month
+                let nMonth = (month + 1) > 12 ? (month + 1) - 12 : (month + 1)
+                let nYear = (month + 1) > 12 ? year + 1 : year
+
+                const nextMonth = new Date(nYear, nMonth - 1, 1)
+                let nPrevDay = Date.parse(nextMonth) - 24 * 60 * 60 * 1000
+                
+                monthShortcuts.push({
+                    text: month < 10 ? `${year}.${'0' + month}` : `${year}.${month}`,
+                    value: [new Date(year, month - 1, 1), dateFormat(nPrevDay, 'yyyy-MM-dd')],
+                })
+                month--
+            }
+            return monthShortcuts
+        }
+
+        const monthShortcuts = getMonthShortcuts()
+        const store = new useStore()
         const tableData = ref([])
         const openingTableData = ref([])
         const commissionList = ref([])
@@ -187,32 +210,14 @@ export default {
             commissionId: '',
         })
         
-        const startDate = new Date()
-        startDate.setTime(startDate.getTime() - 3600 * 1000 * 24 * 14)
         const searchParams = reactive({
-            date: [startDate, date],
+            date: monthShortcuts[0].value,
             name: '',
             openOrClose: '',
             startDate: '',
             endDate: '',
             status: 0,
         })
-
-        const getMonthShortcuts = () => {
-            let year = date.getFullYear()
-            let month = date.getMonth() + 1
-            const monthShortcuts = []
-            for (let i = 0; i < 5; i++) {
-                year = month < 1 ? year - 1 : year
-                month = month < 1 ? month + 12 : month
-                monthShortcuts.push({
-                    text: month < 10 ? `${year}.${'0' + month}` : `${year}.${month}`,
-                    value: [new Date(year, month - 1, 1), new Date(year, month - 1, 1)],
-                })
-                month--
-            }
-            return monthShortcuts
-        }
 
         const shortcuts = [
             {
@@ -233,7 +238,7 @@ export default {
                     return [start, end]
                 },
             },
-            ...getMonthShortcuts(),
+            ...monthShortcuts,
         ]
         const rules = reactive({
             date: [{ required: true, message: '请选择日期', trigger: 'change' }],
@@ -308,10 +313,17 @@ export default {
         const getTableData = async () => {
             if (!isLogin.value) return
             if (searchParams.date[0]) {
-                searchParams.startDate = dateFormat(searchParams.date[0], 'yyyy-MM-dd') + ' 00:00:00'
+                let prevDay = Date.parse(new Date(searchParams.date[0])) - 24 * 60 * 60 * 1000
+                if (new Date(prevDay).getDay() === 0) { // 前一天是周日
+                    prevDay -= 2 * 24 * 60 * 60 * 1000
+                }
+                if (new Date(prevDay).getDay() === 6) { // 前一天是周六
+                    prevDay -= 1 * 24 * 60 * 60 * 1000
+                }
+                searchParams.startDate = dateFormat(prevDay, 'yyyy-MM-dd') + ' 21:00:00'
             }
             if (searchParams.date[1]) {
-                searchParams.endDate = dateFormat(searchParams.date[1], 'yyyy-MM-dd') + ' 23:59:59'
+                searchParams.endDate = dateFormat(searchParams.date[1], 'yyyy-MM-dd') + ' 20:59:59'
             }
             const res = await fetchOrderInfo(searchParams)
             const data = res.data || []
@@ -439,7 +451,7 @@ export default {
         const resetHandle = () => {
             searchParams.name = ''
             searchParams.openOrClose = ''
-            searchParams.date = [startDate, date]
+            searchParams.date = monthShortcuts[0].value
             searchParams.startDate = ''
             searchParams.endDate = ''
             searchParams.status = 0

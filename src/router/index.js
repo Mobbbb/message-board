@@ -75,11 +75,13 @@ const router = createRouter({
     routes,
 })
 
-export const addPrivateRoute = () => {
+export const addPrivateRoute = (to) => {
     privateRoute.forEach(item => {
         if (!router.hasRoute(item.name)) {
             router.addRoute(item)
-            router.replace(router.currentRoute.value.fullPath)
+            if (to && to.path === router.currentRoute.value.fullPath) {
+                router.replace(router.currentRoute.value.fullPath)
+            }
         }
     })
 }
@@ -105,7 +107,7 @@ export const clearPrivateRoute = () => {
 router.beforeEach((to, from, next) => {
     store.commit('app/updateActiveNavIndex', to.path)
     if (store.getters['app/isLogin']) {
-        addPrivateRoute()
+        addPrivateRoute(to, from)
         next()
     } else {
         removePrivateRoute()
