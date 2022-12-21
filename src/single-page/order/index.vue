@@ -275,6 +275,7 @@ export default {
 
         const futuresList = computed(() => store.getters['app/futuresList'])
         const isLogin = computed(() => store.getters['app/isLogin'])
+        const getFutureConfigInfo = () => store.dispatch('app/getFutureConfigInfo')
         const setLoginDrawerStatus = (status) => store.commit('app/setLoginDrawerStatus', status)
 
         const activeName = computed({
@@ -501,6 +502,7 @@ export default {
 
         onMounted(async () => {
             handleClick()
+            await getFutureConfigInfo()
             // 设置默认选中的合约
             const defaultOrderName = localStorage.getItem('default-order-name')
             if (defaultOrderName) {
