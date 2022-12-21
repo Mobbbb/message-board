@@ -2,10 +2,16 @@
     <div class="income-wrap">
         <el-tabs v-model="activeName" @tab-click="handleClick" class="chart-tab" v-if="isLogin">
             <el-tab-pane label="日收益" name="day">
-                <div id="incomeChart1"></div>
+                <div id="incomeChart1" v-if="isShowChart"></div>
+                <div class="no-data-class" v-if="!isShowChart">
+                    <div><blockquote>暂无数据</blockquote></div>
+                </div>
             </el-tab-pane>
             <el-tab-pane label="累计收益" name="add">
-                <div id="incomeChart2"></div>
+                <div id="incomeChart2" v-if="isShowChart"></div>
+                <div class="no-data-class" v-if="!isShowChart">
+                    <div><blockquote>暂无数据</blockquote></div>
+                </div>
             </el-tab-pane>
             <el-tab-pane label="收益列表" name="table">
                 <div class="table-wrap">
@@ -151,7 +157,10 @@ export default {
             }
         })
 
+        const isShowChart = computed(() => chartDataArr.value.length)
+
         const getDayIncome = () => {
+            if (!isShowChart.value) return
             nextTick(() => {
                 document.getElementById('incomeChart1').removeAttribute('_echarts_instance_')
                 myChart1 = echarts.init(document.getElementById('incomeChart1'))
@@ -160,6 +169,7 @@ export default {
         }
 
         const getTotalIncome = () => {
+            if (!isShowChart.value) return
             nextTick(() => {
                 document.getElementById('incomeChart2').removeAttribute('_echarts_instance_')
                 myChart2 = echarts.init(document.getElementById('incomeChart2'))
@@ -314,6 +324,7 @@ export default {
             remark,
             pageSize,
             currentPage,
+            isShowChart,
             submitHandle,
             deleteRow,
             handleClick,

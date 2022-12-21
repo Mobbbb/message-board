@@ -15,11 +15,6 @@
                                 <el-option :label="item" :value="item" v-for="item in futuresConfigList" :key="item"></el-option>
                             </el-select>
                         </el-form-item>
-                        <el-form-item label="手续费标准" prop="commissionId">
-                            <el-select v-model="formData.commissionId" placeholder="请选择手续费" filterable>
-                                <el-option :label="numMap[item.type] + '倍'" :value="item.id" v-for="item in commissionList" :key="item.id"></el-option>
-                            </el-select>
-                        </el-form-item>
                         <el-form-item label="成交价" prop="price">
                             <el-input-number v-model="formData.price" :controls="false" placeholder="请输入成交价" />
                         </el-form-item>
@@ -206,7 +201,6 @@ export default {
         const store = new useStore()
         const tableData = ref([])
         const openingTableData = ref([])
-        const commissionList = ref([])
         const ruleFormRef = ref()
         const searchInputWrap = ref()
         const tableTabWrap = ref()
@@ -219,7 +213,6 @@ export default {
             openOrClose: 0,
             hands: 1,
             price: 0,
-            commissionId: '',
         })
         
         const searchParams = reactive({
@@ -231,23 +224,44 @@ export default {
             status: 0,
         })
 
+        const getGapDate = (gap = 1) => {
+            const end = new Date()
+            const start = new Date()
+
+            let deltaDay = 0
+            if (end.getHours() >= 21) { // 9点之后，区间往后延一天
+                deltaDay ++
+                end.setTime(end.getTime() + 3600 * 1000 * 24 * 1)
+            }
+            if (new Date(end).getDay() === 0) { // 明天是周日
+                deltaDay ++
+                end.setTime(end.getTime() + 3600 * 1000 * 24 * 1)
+            } else if (new Date(end).getDay() === 6) { // 明天是周六
+                deltaDay = deltaDay + 2
+                end.setTime(end.getTime() + 3600 * 1000 * 24 * 2)
+            }
+
+            start.setTime(start.getTime() - 3600 * 1000 * 24 * (gap - deltaDay - 1))
+            return [start, end]
+        }
+
         const shortcuts = [
+            {
+                text: '今日',
+                value: () => {
+                    return getGapDate()
+                },
+            },
             {
                 text: '近7天',
                 value: () => {
-                    const end = new Date()
-                    const start = new Date()
-                    start.setTime(start.getTime() - 3600 * 1000 * 24 * 7)
-                    return [start, end]
+                    return getGapDate(7)
                 },
             },
             {
                 text: '近30天',
                 value: () => {
-                    const end = new Date()
-                    const start = new Date()
-                    start.setTime(start.getTime() - 3600 * 1000 * 24 * 30)
-                    return [start, end]
+                    return getGapDate(30)
                 },
             },
             ...monthShortcuts,
@@ -257,13 +271,10 @@ export default {
             name: [{ required: true, message: '请选择合约', trigger: 'change' }],
             hands: [{ required: true, message: '请输入手数', trigger: 'change' }],
             price: [{ required: true, message: '请输入成交价', trigger: 'change' }],
-            commissionId: [{ required: true, message: '请选择手续费配置', trigger: 'change' }],
         })
 
-        const futureConfigInfo = computed(() => store.state.app.futureConfigInfo)
         const futuresList = computed(() => store.getters['app/futuresList'])
         const isLogin = computed(() => store.getters['app/isLogin'])
-        const getFutureConfigInfo = () => store.dispatch('app/getFutureConfigInfo')
         const setLoginDrawerStatus = (status) => store.commit('app/setLoginDrawerStatus', status)
 
         const activeName = computed({
@@ -325,6 +336,7 @@ export default {
         const getTableData = async () => {
             if (!isLogin.value) return
             if (searchParams.date[0]) {
+                console.log(searchParams.date)
                 let prevDay = Date.parse(new Date(searchParams.date[0])) - 24 * 60 * 60 * 1000
                 if (new Date(prevDay).getDay() === 0) { // 前一天是周日
                     prevDay -= 2 * 24 * 60 * 60 * 1000
@@ -426,7 +438,6 @@ export default {
         }
 
         const changeOrderName = () => { // 切换合约
-            setCommissionList() // 更新手续费标准
             localStorage.setItem('default-order-name', formData.name)
         }
 
@@ -490,7 +501,6 @@ export default {
 
         onMounted(async () => {
             handleClick()
-            await getFutureConfigInfo()
             // 设置默认选中的合约
             const defaultOrderName = localStorage.getItem('default-order-name')
             if (defaultOrderName) {
@@ -498,18 +508,7 @@ export default {
             } else {
                 formData.name = futuresConfigList.value[0]
             }
-
-            setCommissionList() // 设置手续费标准
         })
-
-        // 设置手续费标准
-        const setCommissionList = () => {
-            commissionList.value = futureConfigInfo.value.filter(item => formData.name.indexOf(item.name) > -1)
-            commissionList.value.sort((a, b) => a.type - b.type)
-            if (commissionList.value.length) {
-                formData.commissionId = commissionList.value[0].id // 设置默认选中的手续费标准
-            }
-        }
 
         return {
             centerDialogVisible,
@@ -523,7 +522,6 @@ export default {
             ruleFormRef,
             searchInputWrap,
             tableTabWrap,
-            commissionList,
             buySaleListNum,
             orderTableHeight,
             shortcuts,

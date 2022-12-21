@@ -221,9 +221,9 @@
                 <el-radio :label="1" style="height: 26px;">平多</el-radio>
                 <el-radio :label="0" style="height: 26px;">平空</el-radio>
             </el-radio-group>
-            <el-table border :data="tableData" style="margin-top: 12px;">
+            <!-- <el-table border :data="tableData" style="margin-top: 12px;">
                 <el-table-column :prop="String(index)" :label="`占比(${column.label})`" :key="index" v-for="(column, index) in columns" />
-            </el-table>
+            </el-table> -->
         </div>
     </div>
 </template>
