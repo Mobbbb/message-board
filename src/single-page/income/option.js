@@ -1,16 +1,85 @@
 import { genVH } from '@/libs/util'
 
-export const getOption = (result1 = [], result2 = [], result3 = [], onlyShowLast = false) => {
-    let dataAll = [
-        ...result1.map(item => item.num ? item.num : 0), 
-        ...result2.map(item => item.num ? item.num : 0),
-        ...result3.map(item => item.num ? item.num : 0),
-    ]
+const lineColorArr = ['#ef97b2', '#8196d5', '#7dcf15']
+
+const areaColorArr = [
+    new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+        {
+            offset: 0,
+            color: 'rgba(238, 178, 194, 1)'
+        },
+        {
+            offset: 1,
+            color: 'rgba(241, 208, 218, 0.3)'
+        }
+    ]),
+    new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+        {
+            offset: 0,
+            color: 'rgba(129, 150, 213, 1)'
+        },
+        {
+            offset: 1,
+            color: 'rgba(217, 227, 255, 0.3)'
+        }
+    ]),
+    new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+        {
+            offset: 0,
+            color: 'rgba(169, 213, 151, 1)'
+        },
+        {
+            offset: 1,
+            color: 'rgba(225, 255, 212, 0.3)'
+        }
+    ]),
+]
+
+const fontSize = genVH(8)
+
+/**
+ * 
+ * @param {*} dim [{ data: [], name: '' }]
+ * @param {*} onlyShowLast 
+ * @returns 
+ */
+export const getOption = (dim = [], onlyShowLast = false) => {
+    let dataAll = []
+    dim.forEach(item => {
+        dataAll = dataAll.concat(item.data)
+    })
+    dataAll = [...dataAll.map(item => item.num ? item.num : 0)]
     dataAll.sort((a, b) => b - a)
 
-    // 长度补齐
-    result3 = [...new Array(result1.length - result3.length).fill({ num: 0 }), ...result3]
-    const fontSize = genVH(8)
+    const series = []
+
+    dim.forEach((item, index) => {
+        series.push({
+            name: item.name,
+            type: 'line',
+            data: item.data.map((cell, index) => {
+                return formatLabel(item.data, cell, index, onlyShowLast)
+            }),
+            showAllSymbol: true,
+            connectNulls: true,
+            smooth: true,
+            animationDuration: 500,
+            lineStyle: {
+                color: lineColorArr[index],
+            },
+            itemStyle: {
+                color: lineColorArr[index],
+            },
+            label: {
+                show: true,
+                fontSize,
+            },
+            areaStyle: {
+                opacity: 0.9,
+                color: areaColorArr[index]
+            },
+        })
+    })
 
     return {
         legend: {
@@ -34,7 +103,7 @@ export const getOption = (result1 = [], result2 = [], result3 = [], onlyShowLast
             },
         },
         xAxis: {
-            data: result1.map(item => item.date.slice(5)),
+            data: dim[0] && dim[0].data.map(item => item.date) || [],
             axisPointer: {
                 show: true,
                 type: 'line',
@@ -84,110 +153,7 @@ export const getOption = (result1 = [], result2 = [], result3 = [], onlyShowLast
                 },
             },
         },
-        series: [
-            {
-                name: '小金',
-                type: 'line',
-                data: result1.map((item, index) => {
-                    return formatLabel(result1, item, index, onlyShowLast)
-                }),
-                showAllSymbol: true,
-                connectNulls: true,
-                smooth: true,
-                animationDuration: 500,
-                lineStyle: {
-                    color: '#ef97b2',
-                },
-                itemStyle: {
-                    color: '#ef97b2',
-                },
-                label: {
-                    show: true,
-                    fontSize,
-                },
-                areaStyle: {
-                    opacity: 0.9,
-                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                        {
-                            offset: 0,
-                            color: 'rgba(238, 178, 194, 1)'
-                        },
-                        {
-                            offset: 1,
-                            color: 'rgba(241, 208, 218, 0.3)'
-                        }
-                    ])
-                },
-            },
-            {
-                name: '小银',
-                type: 'line',
-                data: result2.map((item, index) => {
-                    return formatLabel(result1, item, index, onlyShowLast)
-                }),
-                showAllSymbol: true,
-                connectNulls: true,
-                smooth: true,
-                animationDuration: 500,
-                lineStyle: {
-                    color: '#8196d5',
-                },
-                itemStyle: {
-                    color: '#8196d5',
-                },
-                label: {
-                    show: true,
-                    fontSize,
-                },
-                areaStyle: {
-                    opacity: 0.9,
-                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                        {
-                            offset: 0,
-                            color: 'rgba(129, 150, 213, 1)'
-                        },
-                        {
-                            offset: 1,
-                            color: 'rgba(217, 227, 255, 0.3)'
-                        }
-                    ])
-                },
-            },
-            {
-                name: '其他',
-                type: 'line',
-                data: result3.map((item, index) => {
-                    return formatLabel(result1, item, index, onlyShowLast)
-                }),
-                showAllSymbol: true,
-                connectNulls: true,
-                smooth: true,
-                animationDuration: 500,
-                lineStyle: {
-                    color: '#7dcf15',
-                },
-                itemStyle: {
-                    color: '#7dcf15',
-                },
-                label: {
-                    show: true,
-                    fontSize,
-                },
-                areaStyle: {
-                    opacity: 0.9,
-                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                        {
-                            offset: 0,
-                            color: 'rgba(169, 213, 151, 1)'
-                        },
-                        {
-                            offset: 1,
-                            color: 'rgba(225, 255, 212, 0.3)'
-                        }
-                    ])
-                },
-            },
-        ]
+        series,
     }
 }
 

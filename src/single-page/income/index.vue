@@ -1,6 +1,6 @@
 <template>
     <div class="income-wrap">
-        <el-tabs v-model="activeName" @tab-click="handleClick" class="chart-tab">
+        <el-tabs v-model="activeName" @tab-click="handleClick" class="chart-tab" v-if="isLogin">
             <el-tab-pane label="日收益" name="day">
                 <div id="incomeChart1"></div>
             </el-tab-pane>
@@ -12,8 +12,7 @@
                     <el-table :data="showListData" height="100%" style="font-size: 12px;">
                         <el-table-column prop="date" label="日期" />
                         <el-table-column prop="num" label="收益" />
-                        <el-table-column prop="showName" label="角色" />
-                        <el-table-column prop="username" label="账户" />
+                        <el-table-column prop="name" label="角色" />
                         <el-table-column prop="remark" label="备注" />
                         <el-table-column fixed="right" label="操作" width="60" align="center">
                             <template #default="scope">
@@ -45,10 +44,8 @@
                     </div>
                     <div class="table-input-item-wrap">
                         <span>角色：</span>
-                        <el-select v-model="name" multiple placeholder="请选择角色">
-                            <el-option label="金" value="j"></el-option>
-                            <el-option label="银" value="y"></el-option>
-                            <el-option label="其他" value="other"></el-option>
+                        <el-select v-model="name" multiple placeholder="请选择角色" style="width: 240px;">
+                            <el-option :label="item" :value="item" v-for="item in accountName" :key="item"></el-option>
                         </el-select>
                     </div>
                     <div class="table-input-item-wrap">
@@ -61,11 +58,28 @@
                 </div>
             </el-tab-pane>
         </el-tabs>
+        <div class="no-data-class login-wrap" v-else>
+            <div>
+                <blockquote>您当前还未登录</blockquote>
+                <div class="no-data-btn" @click="showLoginHandle">前往登录</div>
+            </div>
+        </div>
+        <el-dialog v-model="centerDialogVisible"
+            title="警告"
+            width="280px">
+            <span>确定要删除吗？</span>
+            <template #footer>
+                <span class="dialog-footer">
+                    <el-button type="danger" @click="confirmDelete">确定</el-button>
+                    <el-button @click="centerDialogVisible = false">取消</el-button>
+                </span>
+            </template>
+        </el-dialog>
     </div>
 </template>
 
 <script>
-import { ref, nextTick, onMounted, onBeforeUnmount, computed } from 'vue'
+import { ref, nextTick, onMounted, onBeforeUnmount, computed, watch } from 'vue'
 import { useStore } from 'vuex'
 import { getOption } from './option'
 import { fetchIncomeInfo, fetchInsertIncome, fetchDeleteIncome } from '@/api'
@@ -77,25 +91,32 @@ export default {
     setup() {
         const store = new useStore()
         const tableData = ref([])
+        const chartDataArr = ref([])
+        const chartDataTotalArr = ref([])
         const date = ref(new Date())
         const num = ref(0)
+        const name = ref([])
         const remark = ref('')
-        const name = ref(['j', 'y'])
         const currentPage = ref(1)
+        const centerDialogVisible = ref(false)
 
         const pageSize = 40
         const festivalList = ['2022-09-10', '2022-09-11', '2022-09-12', '2022-10-01', '2022-10-02', '2022-10-03', 
             '2022-10-04', '2022-10-05', '2022-10-06', '2022-10-07']
 
-        let result1 = []
-        let result2 = []
-        let result3 = []
-
         let myChart1 = null
         let myChart2 = null
 
+        const isLogin = computed(() => store.getters['app/isLogin'])
         const setActiveTabName = (value) => store.commit('app/setActiveTabName', value)
-
+        const accountName = computed(() => {
+            const { account = '' } = store.state.app.USER_INFO
+            if (account) {
+                name.value = [...account.split(',')]
+                return account.split(',')
+            }
+            return []
+        })
         const activeName = computed({
             get() {
                 return store.state.app.activeTabName
@@ -111,8 +132,10 @@ export default {
         })
 
         onMounted(async () => {
-            await getTableData()
-            handleClick()
+            if (isLogin.value) {
+                await getTableData()
+                handleClick()
+            }
         })
 
         onBeforeUnmount(() => {
@@ -129,81 +152,19 @@ export default {
         })
 
         const getDayIncome = () => {
-            setChartData()
-
             nextTick(() => {
                 document.getElementById('incomeChart1').removeAttribute('_echarts_instance_')
                 myChart1 = echarts.init(document.getElementById('incomeChart1'))
-                myChart1.setOption(getOption(result1, result2, result3))
+                myChart1.setOption(getOption(chartDataArr.value))
             })
         }
 
         const getTotalIncome = () => {
-            setChartData()
-
-            let data1 = []
-            let data2 = []
-            let data3 = []
-            result1.forEach((item, index) => {
-                if (index) {
-                    data1.push({
-                        num: item.num + data1[index - 1].num,
-                        date: item.date,
-                    })
-                } else {
-                    data1.push(item)
-                }
-            })
-            result2.forEach((item, index) => {
-                if (index) {
-                    data2.push({
-                        num: item.num + data2[index - 1].num,
-                        date: item.date,
-                    })
-                } else {
-                    data2.push(item)
-                }
-            })
-            result3.forEach((item, index) => {
-                if (index) {
-                    data3.push({
-                        num: item.num + data3[index - 1].num,
-                        date: item.date,
-                    })
-                } else {
-                    data3.push(item)
-                }
-            })
-
             nextTick(() => {
                 document.getElementById('incomeChart2').removeAttribute('_echarts_instance_')
                 myChart2 = echarts.init(document.getElementById('incomeChart2'))
-                myChart2.setOption(getOption(formatData(data1), formatData(data2), formatData(data3), true))
+                myChart2.setOption(getOption(chartDataTotalArr.value, true))
             })
-        }
-
-        const setChartData = () => {
-            result1 = []
-            result2 = []
-            result3 = []
-            tableData.value.forEach(item => {
-                if (!Array.isArray(item.name)) {
-                    item.name = item.name.split(',')
-                }
-                if (item.name.includes('j')) {
-                    result1.push(item)
-                }
-                if (item.name.includes('y')) {
-                    result2.push(item)
-                }
-                if (item.name.includes('other')) {
-                    result3.push(item)
-                }
-            })
-
-            result1 = formatData(result1)
-            result2 = formatData(result2)
-            result3 = formatData(result3)
         }
 
         const handleClick = async () => {
@@ -216,58 +177,76 @@ export default {
             }
         }
 
-        const formatData = (data) => {
-            let result = []
-            if (!data.length) return []
-            data.sort((a, b) => Date.parse(new Date(b.date)) - Date.parse(new Date(a.date)))
-            let dateArr = getDateBetween(data[data.length - 1].date, dateFormat(new Date()))
-
-            dateArr = dateArr.filter(item => !festivalList.includes(item))
-
-            dateArr.forEach(item => {
-                let flag = null
-                data.forEach(cell => {
-                    if (cell.date === item) {
-                        flag = cell
-                    }
-                })
-
-                if (flag) {
-                    result.push(flag)
-                } else {
-                    const dateTime = new Date(item)
-                    if (dateTime.getDay() !== 0 && dateTime.getDay() !== 6) {
-                        result.push({
-                            date: item,
-                            num: 0,
-                        })
-                    }
-                }
-            })
-            
-            return result
-        }
-
         const getTableData = async () => {
-            const nameMap = {
-                'j': '小金',
-                'y': '小银',
-                'other': '其他',
-            }
             const res = await fetchIncomeInfo()
             const data = res.data || []
             data.sort((a, b) => Date.parse(new Date(b.date)) - Date.parse(new Date(a.date)))
+            let nameArr = [] // 维度
+            // 横坐标全部日期
+            let dateArr = []
+            if (data[data.length - 1]) {
+                dateArr = getDateBetween(data[data.length - 1].date, dateFormat(new Date()))
+            }
+            // 过滤节假日
+            dateArr = dateArr.filter(item => !festivalList.includes(item))
             data.forEach(item => {
                 if (!Array.isArray(item.name)) {
                     item.name = item.name.split(',')
                 }
-                const nameArr = []
-                item.name.forEach(cell => {
-                    nameArr.push(nameMap[cell])
-                })
-                item.showName = nameArr.join('、')
+                nameArr = nameArr.concat(item.name)
+                nameArr = [...new Set(nameArr)]
             })
-                
+            chartDataArr.value = []
+            chartDataTotalArr.value = []
+            nameArr.forEach(nameItem => {
+                chartDataArr.value.push({
+                    name: nameItem,
+                    data: [],
+                })
+                chartDataTotalArr.value.push({
+                    name: nameItem,
+                    data: [],
+                })
+            })
+            chartDataArr.value.forEach(item => { // 装填数据
+                data.forEach(cell => {
+                    if (cell.name.includes(item.name)) {
+                        item.data.push(cell)
+                    }
+                })
+            })
+            
+            dateArr.forEach(dateItem => { // 补全横坐标
+                // 过滤周末
+                const dateTime = new Date(dateItem)
+                if (dateTime.getDay() === 0 || dateTime.getDay() === 6) return
+
+                chartDataArr.value.forEach(item => {
+                    const lineItemDateArr = item.data.map(cell => cell.date)
+                    if (!lineItemDateArr.includes(dateItem)) {
+                        item.data.push({
+                            date: dateItem,
+                            num: 0,
+                        })
+                    }
+                })
+            })
+            chartDataArr.value.forEach(item => {
+                item.data.sort((a, b) => Date.parse(new Date(a.date)) - Date.parse(new Date(b.date)))
+            })
+            chartDataArr.value.forEach((item, index) => {
+                item.data.forEach((cell, cellIndex) => {
+                    if (cellIndex) {
+                        chartDataTotalArr.value[index].data.push({
+                            // 当前项 + 上一项
+                            num: cell.num + chartDataTotalArr.value[index].data[cellIndex - 1].num,
+                            date: cell.date,
+                        })
+                    } else {
+                        chartDataTotalArr.value[index].data.push(cell)
+                    }
+                })
+            })
             tableData.value = data
         }
 
@@ -282,32 +261,64 @@ export default {
                 name: name.value.join(','),
                 remark: remark.value,
             }
-            await fetchInsertIncome(params)
-            getTableData()
-            name.value = ['j', 'y']
-            num.value = 0
-            remark.value = ''
-            ElMessage.success('录入成功')
+            const res = await fetchInsertIncome(params)
+            if (res.success) {
+                getTableData()
+                name.value = [...accountName.value]
+                num.value = 0
+                remark.value = ''
+                ElMessage.success('录入成功')
+            }
         }
 
+        let currentDeleteItem = null
         const deleteRow = async (data) => {
-            await fetchDeleteIncome(data.row.id)
-            getTableData()
+            currentDeleteItem = data
+            centerDialogVisible.value = true
         }
+
+        const confirmDelete = async () => {
+            if (currentDeleteItem) {
+                await fetchDeleteIncome(currentDeleteItem.row.id)
+                getTableData()
+            }
+            centerDialogVisible.value = false
+        }
+
+        const setLoginDrawerStatus = (status) => store.commit('app/setLoginDrawerStatus', status)
+        const showLoginHandle = () => {
+            setLoginDrawerStatus(true)
+        }
+
+        watch(isLogin, async (value) => {
+            if (value) {
+                await getTableData()
+                handleClick()
+            } else {
+                tableData.value = []
+                chartDataArr.value = []
+                chartDataTotalArr.value = []
+            }
+        })
 
         return {
+            centerDialogVisible,
+            isLogin,
             tableData,
             showListData,
             activeName,
             date,
             num,
             name,
+            accountName,
             remark,
             pageSize,
             currentPage,
             submitHandle,
             deleteRow,
             handleClick,
+            showLoginHandle,
+            confirmDelete,
         }
     },
 }
@@ -348,6 +359,34 @@ export default {
 }
 .table-input-item-wrap span {
     flex-shrink: 0;
+}
+.no-data-class {
+    height: calc(100% - 36px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-bottom: 25vh;
+    box-sizing: border-box;
+}
+.no-data-class blockquote {
+    font-size: 16px;
+    color: #999;
+    border-left: 4px solid #dfe2e5;
+    margin: 12px 0;
+    padding: 8px 0 8px 12px;
+}
+.no-data-class .no-data-btn {
+    color: #3eaf7c;
+    font-weight: 500;
+    font-size: 16px;
+    transition: color .2s ease;
+}
+.no-data-class .no-data-btn:hover {
+    cursor: pointer;
+    color: #79cea8;
+}
+.login-wrap {
+    padding-bottom: 30vh;
 }
 </style>
 

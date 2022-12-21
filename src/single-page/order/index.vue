@@ -154,6 +154,17 @@
                 </el-table>
             </el-tab-pane>
         </el-tabs>
+        <el-dialog v-model="centerDialogVisible"
+            title="警告"
+            width="280px">
+            <span>确定要删除吗？</span>
+            <template #footer>
+                <span class="dialog-footer">
+                    <el-button type="danger" @click="confirmDelete">确定</el-button>
+                    <el-button @click="centerDialogVisible = false">取消</el-button>
+                </span>
+            </template>
+        </el-dialog>
     </div>
 </template>
 
@@ -200,6 +211,7 @@ export default {
         const searchInputWrap = ref()
         const tableTabWrap = ref()
         const orderTableHeight = ref(0)
+        const centerDialogVisible = ref(false)
         const formData = reactive({
             date,
             name: '',
@@ -343,10 +355,19 @@ export default {
             }
         }
 
+        let currentDeleteItem = null
         const deleteRow = async (data) => {
-            await fetchDeleteOrder(data.row.id)
-            getTableData()
-        } 
+            currentDeleteItem = data
+            centerDialogVisible.value = true
+        }
+
+        const confirmDelete = async () => {
+            if (currentDeleteItem) {
+                await fetchDeleteOrder(currentDeleteItem.row.id)
+                getTableData()
+            }
+            centerDialogVisible.value = false
+        }
 
         /**
          * @param {*} buyOrSale 1买，0卖
@@ -491,6 +512,7 @@ export default {
         }
 
         return {
+            centerDialogVisible,
             numMap,
             futuresConfigList,
             formData,
@@ -515,6 +537,7 @@ export default {
             searchHandle,
             resetHandle,
             changeDateHandle,
+            confirmDelete,
         }
     },
 }

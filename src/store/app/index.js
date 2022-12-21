@@ -100,11 +100,12 @@ const app = {
                 commit('SET_USER_INFO', { userId })
                 const res = await fetchUserInfo()
                 const { data = {} } = res
-                const { uid, avatar } = data
+                const { uid, avatar, account } = data
                 if (uid) {
                     commit('SET_USER_INFO', {
                         userId: uid,
                         avatar,
+                        account,
                     })
                 }
             }

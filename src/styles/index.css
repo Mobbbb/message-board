@@ -197,3 +197,8 @@ input {
 .el-message {
     min-width: 320px!important;
 }
+
+.el-overlay-dialog .el-dialog__body {
+    padding-top: 12px;
+    padding-bottom: 12px;
+}
