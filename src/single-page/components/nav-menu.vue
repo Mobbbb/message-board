@@ -43,7 +43,7 @@
 
 <script>
 import { mapState, mapGetters, mapMutations, mapActions } from 'vuex'
-import { routes, privateRoute } from '@/router'
+import { routes, privateRoute, whiteUserList } from '@/router'
 import LoginDrawer from './login-drawer.vue'
 import { Avatar } from '@element-plus/icons-vue'
 
@@ -67,6 +67,7 @@ export default {
         ]),
         ...mapGetters('app', [
             'isLogin',
+            'isWhiteUser',
         ]),
         pageNavWrapStyle() {
             return {
@@ -75,7 +76,7 @@ export default {
             }
         },
         navMenus() {
-            if (this.isLogin) {
+            if (this.isLogin && this.isWhiteUser) {
                 return [...privateRoute, ...routes]
             } else {
                 return routes

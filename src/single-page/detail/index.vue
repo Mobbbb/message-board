@@ -18,10 +18,10 @@ export default {
     setup() {
         const router = useRouter()
         const store = new useStore()
-        const listData = computed(() => store.state.app.listData)
+        const homeListData = computed(() => store.state.app.homeListData)
 
         const params = computed(() => {
-            return listData.value.filter(item => item.id === router.currentRoute.value.query.id)[0] || {}
+            return homeListData.value.filter(item => item.id === router.currentRoute.value.query.id)[0] || {}
         })
     
         const backHandle = () => {

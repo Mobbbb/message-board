@@ -25,9 +25,9 @@ export default {
     },
     setup() {
         const store = new useStore()
-        const originData = computed(() => store.state.app.originData)
+        const homeTotalListData = computed(() => store.state.app.homeTotalListData)
 
-        const setListData = (value) => store.commit('app/setListData', value)
+        const setHomeListData = (value) => store.commit('app/setHomeListData', value)
         const INIT_USER = (value) => store.dispatch('app/INIT_USER', value)
         
         onMounted(async () => {
@@ -40,7 +40,7 @@ export default {
         })
 
         const searchHandle = (value) => {
-            setListData(filterDataByText(value, originData.value))
+            setHomeListData(filterDataByText(value, homeTotalListData.value))
         }
 
         return {

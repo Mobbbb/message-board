@@ -337,7 +337,6 @@ export default {
         const getTableData = async () => {
             if (!isLogin.value) return
             if (searchParams.date[0]) {
-                console.log(searchParams.date)
                 let prevDay = Date.parse(new Date(searchParams.date[0])) - 24 * 60 * 60 * 1000
                 if (new Date(prevDay).getDay() === 0) { // 前一天是周日
                     prevDay -= 2 * 24 * 60 * 60 * 1000

@@ -69,12 +69,12 @@ export default {
         },
         afterSubmit(result) {
             if (result.success) {
-                addPrivateRoute()
                 this.setLoginDrawerStatus(false)
                 this.INIT_USER()
                 this.$message.success(result.msg)
                 this.username = ''
                 this.password = ''
+                addPrivateRoute()
             }
         },
     },

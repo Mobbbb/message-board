@@ -26,7 +26,7 @@
         <el-pagination small background layout="prev, jumper, next, total" 
             v-model:currentPage="currentPage"
             :page-size="pageSize"
-            :total="listData.length"
+            :total="homeListData.length"
             class="home-pagination" />
         <Refresh @on-click="refreshHandle" :showRedPoint="showRedPoint"></Refresh>
     </div>
@@ -56,17 +56,17 @@ export default {
         const newStatus = ref(null)
         const htmlContent = {}
         const centerDialogVisible = ref(false)
-        const listData = computed(() => store.state.app.listData.filter(item => !item.hideDefault))
+        const homeListData = computed(() => store.state.app.homeListData.filter(item => !item.hideDefault))
 
         const requestHomeList = () => store.dispatch('app/requestHomeList')
-        const setOriginData = (value) => store.commit('app/setOriginData', value)
-        const setListData = (value) => store.commit('app/setListData', value)
+        const setHomeTotalListData = (value) => store.commit('app/setHomeTotalListData', value)
+        const setHomeListData = (value) => store.commit('app/setHomeListData', value)
 
         const pageSize = 20
 
         const showListData = computed(() => {
             const startNum = (currentPage.value - 1) * pageSize
-            return listData.value.slice(startNum, startNum + pageSize)
+            return homeListData.value.slice(startNum, startNum + pageSize)
         })
 
         const clickHandle = (params) => {
@@ -141,9 +141,10 @@ export default {
             }
             let localData = localStorage.getItem(`message-list`)
             localData = JSON.parse(localData) || {}
-            if (localData[window.version]) {
-                setOriginData(localData[window.version])
-                setListData(localData[window.version])
+            const { version = '' } = window
+            if (localData[version]) {
+                setHomeTotalListData(localData[version])
+                setHomeListData(localData[version])
                 showRedPoint.value = await requestFlag(false)
             } else {
                 showRedPoint.value = await requestFlag()
@@ -157,7 +158,7 @@ export default {
             htmlContent,
             password,
             centerDialogVisible,
-            listData,
+            homeListData,
             showListData,
             isLoading,
             showRedPoint,

@@ -60,8 +60,8 @@ export const notFoundRoute = {
 }
 
 export const routes = [
-    incomeRoute,
     orderRoute,
+    incomeRoute,
     toolsRoute,
     detailRoute,
     notFoundRoute,
@@ -69,6 +69,7 @@ export const routes = [
 
 export const privateRoute = [homeRoute]
 export const privateRouteName = privateRoute.map(item => item.name)
+export const whiteUserList = ['654321', '123456']
 
 const router = createRouter({
     history: createWebHashHistory(),
@@ -76,6 +77,7 @@ const router = createRouter({
 })
 
 export const addPrivateRoute = (to) => {
+    if (!store.getters['app/isWhiteUser']) return
     privateRoute.forEach(item => {
         if (!router.hasRoute(item.name)) {
             router.addRoute(item)

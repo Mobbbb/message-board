@@ -114,7 +114,7 @@ export default {
         let myChart2 = null
 
         const isLogin = computed(() => store.getters['app/isLogin'])
-        const setActiveTabName = (value) => store.commit('app/setActiveTabName', value)
+        const setActiveIncomeTab = (value) => store.commit('app/setActiveIncomeTab', value)
         const accountName = computed(() => {
             const { account = '' } = store.state.app.USER_INFO
             if (account) {
@@ -125,10 +125,10 @@ export default {
         })
         const activeName = computed({
             get() {
-                return store.state.app.activeTabName
+                return store.state.app.activeIncomeTab
             },
             set(value) {
-                setActiveTabName(value)
+                setActiveIncomeTab(value)
             },
         })
 

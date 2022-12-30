@@ -1,6 +1,6 @@
 import { fetchFutureConfigInfo, fetchInsertLog, fetchUserInfo, fetchListData } from '@/api'
 import { getCurrentTime, getQueryVariable, getCookie, delCookie } from '@/libs/util'
-import router, { clearPrivateRoute } from '@/router'
+import router, { clearPrivateRoute, whiteUserList } from '@/router'
 
 const app = {
     namespaced: true,
@@ -13,11 +13,12 @@ const app = {
                 minWidth: 332,
             },
             mediaCriticalValue: 544, // 响应式临界尺寸
-            listData: [],
-            originData: [],
-            activeNavIndex: '/',
 
-            activeTabName: 'day',
+            homeListData: [],
+            homeTotalListData: [],
+
+            activeNavIndex: '/',
+            activeIncomeTab: 'day',
             activeOrderTab: 'add',
 
             showLoginDrawerStatus: false,
@@ -51,13 +52,16 @@ const app = {
         isLogin(state) {
             return !!state.USER_INFO.userId
         },
+        isWhiteUser(state) {
+            return whiteUserList.includes(state.USER_INFO.userId)
+        },
     },
     mutations: {
         setFutureConfigInfo(state, value) {
             state.futureConfigInfo = value
         },
-        setActiveTabName(state, value) {
-            state.activeTabName = value
+        setActiveIncomeTab(state, value) {
+            state.activeIncomeTab = value
         },
         setActiveOrderTab(state, value) {
             state.activeOrderTab = value
@@ -77,11 +81,11 @@ const app = {
         setCommissionType(state, value) {
             state.goods.commissionType = value
         },
-        setListData(state, value) {
-            state.listData = value
+        setHomeListData(state, value) {
+            state.homeListData = value
         },
-        setOriginData(state, value) {
-            state.originData = value
+        setHomeTotalListData(state, value) {
+            state.homeTotalListData = value
         },
         updateActiveNavIndex(state, value) {
             state.activeNavIndex = value
@@ -148,8 +152,8 @@ const app = {
                         item.htmlContent = item.htmlContent.replace('<br  />&nbsp;', '<br  />')
                     }
                 })
-                commit('setOriginData', JSON.parse(JSON.stringify(result)))
-                commit('setListData', result)
+                commit('setHomeTotalListData', JSON.parse(JSON.stringify(result)))
+                commit('setHomeListData', result)
 
                 let obj = {}
                 obj[window.version] = result
