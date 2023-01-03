@@ -91,6 +91,7 @@ import { getOption } from './option'
 import { fetchIncomeInfo, fetchInsertIncome, fetchDeleteIncome } from '@/api'
 import { getDateBetween, dateFormat } from '@/libs/util'
 import { ElMessage } from 'element-plus'
+import { festivalList } from '@/config'
 
 export default {
     name: 'income',
@@ -107,9 +108,6 @@ export default {
         const centerDialogVisible = ref(false)
 
         const pageSize = 40
-        const festivalList = ['2022-09-10', '2022-09-11', '2022-09-12', '2022-10-01', '2022-10-02', '2022-10-03', 
-            '2022-10-04', '2022-10-05', '2022-10-06', '2022-10-07']
-
         let myChart1 = null
         let myChart2 = null
 

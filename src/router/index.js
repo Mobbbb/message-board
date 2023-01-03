@@ -77,7 +77,6 @@ const router = createRouter({
 })
 
 export const addPrivateRoute = (to) => {
-    if (!store.getters['app/isWhiteUser']) return
     privateRoute.forEach(item => {
         if (!router.hasRoute(item.name)) {
             router.addRoute(item)
@@ -108,8 +107,8 @@ export const clearPrivateRoute = () => {
 
 router.beforeEach((to, from, next) => {
     store.commit('app/updateActiveNavIndex', to.path)
-    if (store.getters['app/isLogin']) {
-        addPrivateRoute(to, from)
+    if (store.getters['app/isWhiteUser']) {
+        addPrivateRoute(to)
         next()
     } else {
         removePrivateRoute()

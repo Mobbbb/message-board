@@ -20,7 +20,7 @@
 </template>
 
 <script>
-import { mapState, mapMutations, mapActions } from 'vuex'
+import { mapState, mapGetters ,mapMutations, mapActions } from 'vuex'
 import { fetchUserLogin } from '@/api/index'
 import { addPrivateRoute } from '@/router'
 import GcButton from '@/components/gc-button.vue'
@@ -48,6 +48,9 @@ export default {
         ...mapState('app', [
             'showLoginDrawerStatus',
         ]),
+        ...mapGetters('app', [
+            'isWhiteUser',
+        ]),
     },
     methods: {
         ...mapMutations('app', [
@@ -74,7 +77,9 @@ export default {
                 this.$message.success(result.msg)
                 this.username = ''
                 this.password = ''
-                addPrivateRoute()
+                if (this.isWhiteUser) {
+                    addPrivateRoute()
+                }
             }
         },
     },

@@ -56,25 +56,25 @@
                             end-placeholder="结束日期"
                             :clearable="false"
                             :shortcuts="shortcuts"
-                            @change="changeDateHandle"
+                            @change="changeInputHandle"
                             class="date-picker"
 						    popper-class="date-picker-popper"
                             style="width: 260px;" />
                     </div>
                     <div class="search-item-wrap">
                         <span>合约名：</span>
-                        <el-input v-model="searchParams.name" placeholder="请输入合约名" style="width: 120px;" />
+                        <el-input v-model="searchParams.name" clearable placeholder="请输入合约名" style="width: 120px;" />
                     </div>
                     <div class="search-item-wrap">
                         <span>开/平：</span>
-                        <el-select v-model="searchParams.openOrClose" style="width: 120px;">
+                        <el-select v-model="searchParams.openOrClose" @change="changeInputHandle" clearable style="width: 120px;">
                             <el-option label="平" :value="0"></el-option>
                             <el-option label="开" :value="1"></el-option>
                         </el-select>
                     </div>
                     <div class="search-item-wrap">
                         <span>状态：</span>
-                        <el-select v-model="searchParams.status" style="width: 120px;">
+                        <el-select v-model="searchParams.status" @change="changeInputHandle" style="width: 120px;">
                             <el-option label="全部" :value="0"></el-option>
                             <el-option label="已平" :value="1"></el-option>
                             <el-option label="未平" :value="2"></el-option>
@@ -476,7 +476,7 @@ export default {
             getTableData()
         }
 
-        const changeDateHandle = () => {
+        const changeInputHandle = () => {
             getTableData()
         }
 
@@ -535,7 +535,7 @@ export default {
             getSummaries,
             searchHandle,
             resetHandle,
-            changeDateHandle,
+            changeInputHandle,
             confirmDelete,
         }
     },
