@@ -56,7 +56,7 @@
                     </div>
                     <div class="table-input-item-wrap">
                         <span>备注：</span>
-                        <el-input v-model="remark" type="textarea" />
+                        <el-input v-model="remark" class="ios-textarea" type="textarea" />
                     </div>
                     <div style="margin: 16px 0 0 36px;">
                         <el-button type="primary" @click="submitHandle">录入</el-button>

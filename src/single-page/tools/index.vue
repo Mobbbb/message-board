@@ -11,7 +11,7 @@
                     class="search-input" />
                 <el-button size="small" type="primary" style="height: 28px;border-radius: 0 3px 3px 0;" @click="searchHandle">MD5加密</el-button>
             </div>
-            <el-input class="tool-textarea" type="textarea" resize="none" v-model="md5Result" />
+            <el-input class="ios-textarea" type="textarea" resize="none" v-model="md5Result" />
         </div>
         <div class="modules-wrap">
             <div class="modules-title">· 工具二</div>
@@ -557,22 +557,6 @@ export default {
 </style>
 
 <style>
-.tool-textarea > textarea{
-    border: 1px solid #dcdfe6;
-    box-shadow: none;
-    transition: border .2s cubic-bezier(0.645, 0.045, 0.355, 1);
-    padding-left: 8px;
-    padding-right: 8px;
-    font-size: 14px;
-}
-.tool-textarea > .el-textarea__inner:hover {
-    box-shadow: none;
-    border: 1px solid #c0c4cc;
-}
-.tool-textarea > .el-textarea__inner:focus {
-    box-shadow: none;
-    border: 1px solid #409eff;
-}
 .search-input-wrap .el-input__inner {
     height: 28px;
     border-radius: 4px 0 0 4px;
